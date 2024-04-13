@@ -1,0 +1,16 @@
+default:
+  blender: /Applications/Blender.app/Contents/MacOS/Blender
+  env_file: .env
+  env_inherit: true
+  env_override: true
+  prepend_args: []
+  append_args: []
+  background: false
+  autoexec: false
+  python: null
+  python_text: null
+  python_expr: null
+  python_console: false
+  python_exit_code: null
+  python_use_system_env: false
+  addons: []
