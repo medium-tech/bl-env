@@ -44,29 +44,38 @@ The `bl-env.yaml` file contains 1 or more blender environments. Each environment
 ## Examples
 ...
 
-## To do list
-* detect windows/osx path
-    * have list of common paths to search for
-    * start with defined paths for windows/osx and then fallback to `blender`
-* add `create` command to init a project with `.env`and `bl-env.yaml`
+## Roadmap
+🔴 = not started
 
-* add licence, make repo public, add to pypi
+🟡 = started
 
-* add conf option to open specific .blend file
-* add ability to override env's configured .blend file when using cli `run` command
-* link / unlink / list links for app templates and addons
-* create project template for addon
-* create project template for "app template"
-* build command for above projects
-* unittests
+🟢 = finished
 
-## future features
+* 🟢 detect blender path
+    * 🟢 have list of common paths to search for
+    * 🟢 start with defined paths for windows/osx and then fallback to `blender`
 
-* auto detect system blender
-* add user global preferences with a defined default blender path
-    * when creating bl-env.yaml reference user default blender
-    * enabling downloading arbitrary versions https://download.blender.org/release/
-        * store them in user folder (yaml files can reference by version instead of path)
+* 🟢 auto generate a `.env` file
+
+* 🔴 create example app
+    * 🔴 create unittests
+
+* 🔴 add licence, make repo public, add to pypi
+
+* 🔴 link / unlink / list links for app templates and addons
+
+* 🔴 add conf option to open specific .blend file
+* 🔴 add ability to override env's configured .blend file when using cli `run` command
+
+* 🔴 create project template for addon
+    * 🔴 emit build script
+* 🔴 create project template for "app template"
+    * 🔴 emit build script
+
+* 🔴 add user global preferences with a defined default blender path
+    * 🔴 when creating bl-env.yaml reference user default blender
+    * 🔴 enabling downloading arbitrary versions https://download.blender.org/release/
+        * 🔴 store them in user folder (yaml files can reference by version instead of path)
     
     
     
@@ -74,6 +83,7 @@ The `bl-env.yaml` file contains 1 or more blender environments. Each environment
 ```
 my_project/
     bl-env.conf
+    .env
     app_templates/
         my_template/
             __init__.py

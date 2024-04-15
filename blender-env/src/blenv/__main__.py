@@ -35,7 +35,7 @@ def system(
     ):
 
     try:
-        commands.blender(args, env_file=env_file, env_inherit=env_inherit, env_override=env_override)
+        commands.system(args, env_file=env_file, env_inherit=env_inherit, env_override=env_override)
     except BlenderEnvError as e:
         typer.echo(e)
         raise typer.Exit(code=1)

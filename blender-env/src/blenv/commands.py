@@ -20,21 +20,40 @@ def conf(conf_command: CLIConfCommand = CLIConfCommand.show, overwrite: bool = F
     match conf_command:
 
         case CLIConfCommand.create:
-            default_bl_env = BlenderEnvironmentConf()
+
+            # create bl-env.yaml file #
+
+            default_blenv_conf = BlenderEnvironmentConf()
             try:
-                default_bl_env.dump_yaml_file(overwrite=overwrite)
+                default_blenv_conf.dump_yaml_file(overwrite=overwrite)
+                print(f'wrote: {BLENV_CONFIG_FILENAME}')
             except FileExistsError:
-                if input('File already exists. Overwrite? [y/n] ') == 'y':
-                    default_bl_env.dump_yaml_file(overwrite=True)
+                if input(f'{BLENV_CONFIG_FILENAME} already exists. Overwrite? [y/n] ') == 'y':
+                    default_blenv_conf.dump_yaml_file(overwrite=True)
+                    print(f'wrote: {BLENV_CONFIG_FILENAME}')
                 else:
-                    print('not overwriting')
+                    print(f'not overwriting: {BLENV_CONFIG_FILENAME}')
+
+            # create .env file #
+
+            default_env_file = EnvVariables()
+            try:
+                default_env_file.dump_env_file(overwrite=overwrite)
+                print(f'wrote: {BLENV_DEFAULT_ENV_FILENAME}')
+            except FileExistsError:
+                if input(f'{BLENV_DEFAULT_ENV_FILENAME} already exists. Overwrite? [y/n] ') == 'y':
+                    default_env_file.dump_env_file(overwrite=True)
+                    print(f'wrote: {BLENV_DEFAULT_ENV_FILENAME}')
+                else:
+                    print(f'not overwriting: {BLENV_DEFAULT_ENV_FILENAME}')
 
         case CLIConfCommand.test:
             BlenderEnvironmentConf.from_yaml_file()
+            EnvVariables.from_env_file()
 
         case CLIConfCommand.show:
-            _conf = BlenderEnvironmentConf.from_yaml_file()
-            print(_conf.dump_yaml())
+            print(BlenderEnvironmentConf.from_yaml_file().dump_yaml())
+            print(EnvVariables.from_env_file().dump_env())
         
         case _:
             raise ValueError(f'Unknown command: {conf_command}')
@@ -54,6 +73,6 @@ def system(
         env_override: bool = True,
     ):
 
-    sys_bl_args = [DEFAULT_BLENDER] + (args if args else [])
+    sys_bl_args = [find_blender()] + (args if args else [])
 
     run_blender(sys_bl_args, env_file=env_file, env_inherit=env_inherit, env_override=env_override)
