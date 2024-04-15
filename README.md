@@ -45,16 +45,20 @@ The `bl-env.yaml` file contains 1 or more blender environments. Each environment
 ...
 
 ## To do list
-* create readme doc
+* detect windows/osx path
+    * have list of common paths to search for
+    * start with defined paths for windows/osx and then fallback to `blender`
+* add `create` command to init a project with `.env`and `bl-env.yaml`
+
+* add licence, make repo public, add to pypi
+
 * add conf option to open specific .blend file
 * add ability to override env's configured .blend file when using cli `run` command
-* detect windows/osx path
 * link / unlink / list links for app templates and addons
 * create project template for addon
 * create project template for "app template"
 * build command for above projects
 * unittests
-* add to pypi
 
 ## future features
 
