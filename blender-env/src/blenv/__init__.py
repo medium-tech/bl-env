@@ -32,7 +32,7 @@ BLENDER_SEARCH_PATHS = [
     'C:\\Program Files\\Blender Foundation\\Blender\\blender.exe'
 ]
 
-BLENV_CONFIG_FILENAME = '.bl-env.yaml'
+BLENV_CONFIG_FILENAME = '.blenv.yaml'
 BLENV_DEFAULT_ENV_FILENAME = '.env'
 
 #
@@ -74,7 +74,7 @@ class EnvVariables:
 
 @dataclass
 class BlenderEnv:
-    blender: str = field(default_factory=lambda: find_blender)
+    blender: str = field(default_factory=lambda: find_blender())
     env_file: str = '.env'
     env_inherit: bool = True
     env_override: bool = True
@@ -142,6 +142,7 @@ def _default_blender_env() -> BlenderEnv:
 
 @dataclass
 class BlenderEnvironmentConf:
+    blenv: dict[str, str] = field(default_factory=lambda: {'version': '1'})
     environments: dict[str, BlenderEnv] = field(default_factory=_default_blender_env)
 
     def get(self, key: str) -> BlenderEnv:
@@ -160,7 +161,10 @@ class BlenderEnvironmentConf:
         return list(self.environments.items())
     
     def dump_yaml(self, stream=None) -> str:
-        data = {name: env.__dict__ for name, env in self.environments.items()}
+        data = {
+            'blenv': self.blenv,
+            'environments': {name: env.__dict__ for name, env in self.environments.items()}
+        }
         return yaml.safe_dump(data, stream=stream, default_flow_style=False, sort_keys=False)
     
     def dump_yaml_file(self, path: Path | str = BLENV_CONFIG_FILENAME, overwrite:bool = False) -> None:

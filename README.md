@@ -1,9 +1,9 @@
 # Blender Environment Manager
 
 ## Overview
-`bl-env` aims to be a combination of `venv` and `pyenv` for [Blender](https://www.blender.org) python projects. It uses `bl-env.yaml` for configuring blender and python and `.env` files to override the blender environment to reference your project. Install this into your global python and use its cli utility to create a new project that autogenerates both of these files.
+Blenv aims to be a combination of `venv` and `pyenv` for [Blender](https://www.blender.org) python projects. It uses a `blenv.yaml` for configuring blender and python optionas and `.env` files to override the blender environment to reference your project. Install this into your global python and use its cli utility to create a new project that autogenerates both of these files.
 
-The cli utility has a command to run blender using the env configuration, standard blender stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
+The cli utility has a command to run blender using the env configuration, blender stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
 
 ## Getting started
 ...
@@ -13,17 +13,15 @@ The cli utility has a command to run blender using the env configuration, standa
 ### cli
 ...
 
-### blender environment variables
-...
 
-### bl-env.yaml
+### blenv.yaml
 
-The `bl-env.yaml` file contains 1 or more blender environments. Each environment is a top level attribute which is the name of the environment when using the cli. Each environment contains the following options:
+The `blenv.yaml` file contains 1 or more blender environments. Each environment is a top level attribute which is the name of the environment when using the cli. Each environment contains the following options:
 
 
 
 
-| bl-env.yaml | blender cli | type | description | default |
+| blenv.yaml | blender cli | type | description | default |
 | -- | -- | -- | -- | -- |
 | blender | N/A | str | path to blender binary | /Applications/Blender.app/Contents/MacOS/Blender |
 | env_file | N/A | str | which env file to use  | `.env` |
@@ -39,7 +37,7 @@ The `bl-env.yaml` file contains 1 or more blender environments. Each environment
 | python_console | `--python-console` | bool | Run Blender with an interactive console. | `false` |
 | python_exit_code | `--python-exit-code` | int | If non-negative supply this vallue to the `--python-exit-code` arg, which sets the exit-code in [0..255] to exit if a Python exception is raised (only for scripts executed from the command line), zero disables. | `-1` |
 | python_use_system_env  | `--python-use-system-env`| bool | Allow Python to use system environment variables such as PYTHONPATH and the user site-packages directory. | `false` |
-| addons | `--addons` | list[str] | Supply addons to enable in addition to default addons, the blender cli accepts a csv delimited string, but `bl-env.yaml` takes a list of strings. | `[]` |
+| addons | `--addons` | list[str] | Supply addons to enable in addition to default addons, the blender cli accepts a csv delimited string, but `blenv.yaml` takes a list of strings. | `[]` |
 
 ## Examples
 ...
@@ -73,7 +71,7 @@ The `bl-env.yaml` file contains 1 or more blender environments. Each environment
     * 🔴 emit build script
 
 * 🔴 add user global preferences with a defined default blender path
-    * 🔴 when creating bl-env.yaml reference user default blender
+    * 🔴 when creating blenv.yaml reference user default blender
     * 🔴 enabling downloading arbitrary versions https://download.blender.org/release/
         * 🔴 store them in user folder (yaml files can reference by version instead of path)
     
