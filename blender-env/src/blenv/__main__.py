@@ -8,9 +8,12 @@ from blenv import commands
 app = typer.Typer(help='Blender Environment CLI')
 
 @app.command()
-def conf(conf_command: Annotated[commands.CLIConfCommand, typer.Argument()] = commands.CLIConfCommand.show):
+def conf(
+        conf_command: Annotated[commands.CLIConfCommand, typer.Argument()] = commands.CLIConfCommand.show,
+        overwrite: bool = False
+    ):
     try:
-        commands.conf(conf_command)
+        commands.conf(conf_command, overwrite=overwrite)
     except BlenderEnvError as e:
         typer.echo(e)
         raise typer.Exit(code=1)

@@ -16,13 +16,13 @@ class CLIConfCommand(str, Enum):
     show = 'show'
 
 
-def conf(conf_command: CLIConfCommand = CLIConfCommand.show):
+def conf(conf_command: CLIConfCommand = CLIConfCommand.show, overwrite: bool = False):
     match conf_command:
 
         case CLIConfCommand.create:
             default_bl_env = BlenderEnvironmentConf()
             try:
-                default_bl_env.dump_yaml_file()
+                default_bl_env.dump_yaml_file(overwrite=overwrite)
             except FileExistsError:
                 if input('File already exists. Overwrite? [y/n] ') == 'y':
                     default_bl_env.dump_yaml_file(overwrite=True)

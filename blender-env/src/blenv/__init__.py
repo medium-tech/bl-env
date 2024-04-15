@@ -9,6 +9,16 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 
+__all__ = [
+    'DEFAULT_BLENDER',
+    'BLENDER_ENV_FILENAME',
+    'BlenderEnvError',
+    'BlenderEnv',
+    'BlenderEnvironmentConf',
+    'run_blender',
+    'BLENDER_ENV_FILENAME'
+]
+
 DEFAULT_BLENDER = '/Applications/Blender.app/Contents/MacOS/Blender'
 BLENDER_ENV_FILENAME = '.bl-env.yaml'
 
@@ -48,15 +58,6 @@ BLENDER_ENV_FILENAME = '.bl-env.yaml'
     addons str, str, etc        (enable addons)
 """
 
-__all__ = [
-    'BlenderEnvError',
-    'BlenderEnv',
-    'BlenderEnvironmentConf',
-    'run_blender',
-    'BLENDER_ENV_FILENAME'
-]
-
-
 class BlenderEnvError(Exception):
     pass
 
@@ -79,7 +80,7 @@ class BlenderEnv:
     python_expr: str | None = None
     python_console: bool = False
 
-    python_exit_code: int | None = None
+    python_exit_code: int = -1
     python_use_system_env: bool = False
 
     addons: list[str] = field(default_factory=list)
@@ -105,7 +106,7 @@ class BlenderEnv:
         if self.python_console:
             args.append('--python-console')
 
-        if self.python_exit_code:
+        if self.python_exit_code >= 0:
             args.extend(['--python-exit-code', str(self.python_exit_code)])
 
         if self.python_use_system_env:
