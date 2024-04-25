@@ -6,8 +6,7 @@ environments:
     env_file: .env
     env_inherit: true
     env_override: true
-    prepend_args: []
-    append_args: []
+    args: null
     background: false
     autoexec: false
     python: null

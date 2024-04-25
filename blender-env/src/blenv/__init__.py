@@ -79,8 +79,7 @@ class BlenderEnv:
     env_inherit: bool = True
     env_override: bool = True
 
-    prepend_args: list[str] = field(default_factory=list)
-    append_args: list[str] = field(default_factory=list)
+    args: list[str] | None = field(default=None)
     
     background: bool = False
     autoexec: bool = False
@@ -96,7 +95,10 @@ class BlenderEnv:
     addons: list[str] = field(default_factory=list)
 
     def get_bl_run_args(self) -> list[str]:
-        args = [self.blender] + self.prepend_args
+        args = [self.blender]
+
+        if self.args is not None:
+            return args + self.args
 
         if self.background:
             args.append('--background')
