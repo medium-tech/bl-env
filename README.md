@@ -78,15 +78,15 @@ The `blenv.yaml` file contains 1 or more blender environments. Each environment 
 
 * 🟢 auto generate a `.env` file
 
+* 🔴 add conf option to open specific .blend file
+* 🔴 add ability to override env's configured .blend file when using cli `run` command
+
 * 🔴 create example app
     * 🔴 create unittests
 
 * 🔴 add licence, make repo public, add to pypi
 
 * 🔴 link / unlink / list links for app templates and addons
-
-* 🔴 add conf option to open specific .blend file
-* 🔴 add ability to override env's configured .blend file when using cli `run` command
 
 * 🔴 create project template for addon
     * 🔴 emit build script
