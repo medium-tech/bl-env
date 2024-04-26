@@ -5,22 +5,26 @@ import time
 import subprocess
 import yaml
 
-from dotenv import load_dotenv, dotenv_values
 from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Optional
+from typing import Literal
+
+from dotenv import load_dotenv, dotenv_values
+from pydantic import BaseModel, Field, model_validator
+from typing_extensions import Self
+
 
 #
 # init
 #
 
 __all__ = [
+    'BLENDER_SEARCH_PATHS',
     'BLENV_CONFIG_FILENAME',
     'BLENV_DEFAULT_ENV_FILENAME',
-    'BlenderEnvError',
+    'BlenvError',
     'EnvVariables',
     'BlenderEnv',
-    'BlenderEnvironmentConf',
+    'BlenvConf',
     'find_blender',
     'run_blender'
 ]
@@ -42,12 +46,10 @@ BLENV_DEFAULT_ENV_FILENAME = '.env'
 class BlenvError(Exception):
     pass
 
-class BlenderEnvError(BlenvError):
-    pass
 
-@dataclass
-class EnvVariables:
-    BLENDER_USER_SCRIPTS: str = field(default_factory=lambda: os.path.join(os.getcwd(), 'src'))
+class EnvVariables(BaseModel):
+
+    BLENDER_USER_SCRIPTS: str = Field(default_factory=lambda: os.path.join(os.getcwd(), 'src'))
 
     def dump_env(self) -> str:
         _env = ''
@@ -72,14 +74,17 @@ class EnvVariables:
 # blenv
 #
 
-@dataclass
-class BlenderEnv:
-    blender: str = field(default_factory=lambda: find_blender())
-    env_file: str = '.env'
+
+class BlenderEnv(BaseModel):
+    inherit: str | None = None
+
+    blender: str | None = None
+    env_file: str | None = None
+
     env_inherit: bool = True
     env_override: bool = True
 
-    args: list[str] | None = field(default=None)
+    args: list[str] | None = None
     
     background: bool = False
     autoexec: bool = False
@@ -92,7 +97,22 @@ class BlenderEnv:
     python_exit_code: int = -1
     python_use_system_env: bool = False
 
-    addons: list[str] = field(default_factory=list)
+    addons: list[str] | None = Field(default=None)
+
+    @classmethod
+    def default(cls) -> 'BlenderEnv':
+        return cls(blender=find_blender(), env_file='.env')
+    
+    @model_validator(mode='after')
+    def check_defaults(self) -> Self:
+        inherit_set = self.inherit is not None
+        if self.blender is None and not inherit_set:
+            raise ValueError('"blender" must be set if "inherit" is not set')
+        
+        if self.env_file is None and not inherit_set:
+            raise ValueError('"env_file" must be set if "inherit" is not set')
+        
+        return self
 
     def get_bl_run_args(self) -> list[str]:
         args = [self.blender]
@@ -126,9 +146,7 @@ class BlenderEnv:
 
         if self.addons:
             # blender is expecting a comma separated list of addons
-            args.extend(['--addon', self.addons])
-
-        args.extend(self.append_args)
+            args.extend(['--addon', ','.join(self.addons)])
 
         return args
     
@@ -140,18 +158,22 @@ class BlenderEnv:
         }
 
 def _default_blender_env() -> BlenderEnv:
-    return {'default': BlenderEnv()}
+    return {'default': BlenderEnv.default()}
 
-@dataclass
-class BlenderEnvironmentConf:
-    blenv: dict[str, str] = field(default_factory=lambda: {'version': '1'})
-    environments: dict[str, BlenderEnv] = field(default_factory=_default_blender_env)
+
+class BlenvConfMeta(BaseModel):
+    version: Literal['1'] = '1'
+
+
+class BlenvConf(BaseModel):
+    blenv: BlenvConfMeta = Field(default_factory=BlenvConfMeta)
+    environments: dict[str, BlenderEnv] = Field(default_factory=_default_blender_env)
 
     def get(self, key: str) -> BlenderEnv:
         try:
             return self.environments[key]
         except KeyError:
-            raise BlenderEnvError(f'No such environment: {key}')
+            raise BlenvError(f'No such environment: {key}')
         
     def get_default(self) -> BlenderEnv:
         return self.get('default')
@@ -162,12 +184,17 @@ class BlenderEnvironmentConf:
     def items(self) -> list[tuple[str, BlenderEnv]]:
         return list(self.environments.items())
     
-    def dump_yaml(self, stream=None) -> str:
+    def dump_yaml(self, stream=None, full=False) -> str:
+        enviros = {}
+        for name, env in self.environments.items():
+            BlenderEnv.model_validate(env)
+            enviros[name] = env.model_dump(exclude_defaults=not full)
+
         data = {
-            'blenv': self.blenv,
-            'environments': {name: env.__dict__ for name, env in self.environments.items()}
+            'blenv': self.blenv.model_dump(),
+            'environments': enviros
         }
-        return yaml.safe_dump(data, stream=stream, default_flow_style=False, sort_keys=False)
+        return yaml.safe_dump(data, stream=stream)
     
     def dump_yaml_file(self, path: Path | str = BLENV_CONFIG_FILENAME, overwrite:bool = False) -> None:
         path = Path(path)
@@ -179,8 +206,30 @@ class BlenderEnvironmentConf:
     
     @classmethod
     def from_yaml(cls, data: str) -> 'BlenderEnv':
-        envs = {name: BlenderEnv(**env) for name, env in yaml.safe_load(data).items()}
-        return cls(environments=envs)
+        raw_data = yaml.safe_load(data)
+
+        child_enviros = {}
+        enviros = {}
+
+        # init base enviros
+        for name, raw_env in raw_data['environments'].items():
+            if raw_env.get('inherit') is not None:
+                child_enviros[name] = raw_env   # will be loaded after all enviros are loaded so it can find parent
+                continue
+
+            enviros[name] = BlenderEnv(**raw_env)
+
+        # init child enviros that inherit from bases
+        for name, child_env in child_enviros.items():
+            try:
+                parent_env = enviros[child_env['inherit']]
+            except KeyError as e:
+                raise ValueError(f"'{name}' environment attempts inherit from undefined environment: {e}")
+            
+            enviros[name] = parent_env.model_copy(update=child_env, deep=True)
+            BlenderEnv.model_validate(enviros[name])
+
+        return cls(blenv=BlenvConfMeta(**raw_data['blenv']), environments=enviros)
     
     @classmethod
     def from_yaml_file(cls, path: Path | str = BLENV_CONFIG_FILENAME) -> 'BlenderEnv':
@@ -201,7 +250,7 @@ def find_blender() -> str:
 def run_blender(
         args: list[str], 
         # environment: None | dict[str, str] = None,
-        env_file: Optional[str] = None,
+        env_file: str | None = None,
         env_inherit: bool = True,
         env_override: bool = True,
     ) -> None:

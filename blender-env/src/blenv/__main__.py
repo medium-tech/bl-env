@@ -14,15 +14,15 @@ def conf(
     ):
     try:
         commands.conf(conf_command, overwrite=overwrite)
-    except BlenderEnvError as e:
+    except BlenvError as e:
         typer.echo(e)
         raise typer.Exit(code=1)
 
 @app.command()
-def blender(env_name: Annotated[str, typer.Argument()] = 'default'):
+def blender(env_name: Annotated[str, typer.Argument()] = 'default', debug: bool = False):
     try:
-        commands.blender(env_name)
-    except BlenderEnvError as e:
+        commands.blender(env_name, debug=debug)
+    except BlenvError as e:
         typer.echo(e)
         raise typer.Exit(code=1)
 
@@ -36,7 +36,7 @@ def system(
 
     try:
         commands.system(args, env_file=env_file, env_inherit=env_inherit, env_override=env_override)
-    except BlenderEnvError as e:
+    except BlenvError as e:
         typer.echo(e)
         raise typer.Exit(code=1)
 

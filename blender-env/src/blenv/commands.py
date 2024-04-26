@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-from typing import Optional
-from enum import Enum
 from blenv import *
+
+from pprint import pprint
+from enum import Enum
+
 
 __all__ = [
     'CLIConfCommand',
@@ -23,7 +25,7 @@ def conf(conf_command: CLIConfCommand = CLIConfCommand.show, overwrite: bool = F
 
             # create bl-env.yaml file #
 
-            default_blenv_conf = BlenderEnvironmentConf()
+            default_blenv_conf = BlenvConf()
             try:
                 default_blenv_conf.dump_yaml_file(overwrite=overwrite)
                 print(f'wrote: {BLENV_CONFIG_FILENAME}')
@@ -48,27 +50,33 @@ def conf(conf_command: CLIConfCommand = CLIConfCommand.show, overwrite: bool = F
                     print(f'not overwriting: {BLENV_DEFAULT_ENV_FILENAME}')
 
         case CLIConfCommand.test:
-            BlenderEnvironmentConf.from_yaml_file()
+            BlenvConf.from_yaml_file()
             EnvVariables.from_env_file()
 
         case CLIConfCommand.show:
-            print(BlenderEnvironmentConf.from_yaml_file().dump_yaml())
+            print(BlenvConf.from_yaml_file().dump_yaml())
             print(EnvVariables.from_env_file().dump_env())
         
         case _:
             raise ValueError(f'Unknown command: {conf_command}')
 
 
-def blender(env_name: str = 'default'):
-    bl_conf = BlenderEnvironmentConf()
+def blender(env_name: str = 'default', debug: bool = False):
+    bl_conf = BlenvConf()
     bl_env = bl_conf.get(env_name)
-    
-    run_blender(bl_env.get_bl_run_args(), bl_env.get_bl_run_kwargs())
+
+    popen_args = bl_env.get_bl_run_args()
+    popen_kwargs = bl_env.get_bl_run_kwargs()
+
+    if debug:
+        pprint({'popen_args': popen_args, 'popen_kwargs': popen_kwargs})
+    else:
+        run_blender(popen_args, **popen_kwargs)
 
 
 def system(
-        args: Optional[list[str]] = None, 
-        env_file:Optional[str] = None,
+        args: list[str] | None = None, 
+        env_file: str | None = None,
         env_inherit: bool = True,
         env_override: bool = True,
     ):

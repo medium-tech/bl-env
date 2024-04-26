@@ -12,6 +12,7 @@ description = 'A utility for creating and managing Blender development environme
 readme = 'README.md'
 requires-python = '>=3.7'
 dependencies = [
+  'pydantic',
   'pyyaml',
   'python-dotenv',
   'typer'
