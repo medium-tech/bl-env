@@ -19,9 +19,14 @@ def conf(
         raise typer.Exit(code=1)
 
 @app.command()
-def blender(env_name: Annotated[str, typer.Argument()] = 'default', debug: bool = False):
+def blender(
+        env_name: Annotated[str, typer.Argument()] = 'default', 
+        blend_file: Annotated[Optional[str], typer.Argument()] = None, 
+        debug: bool = False
+    ):
+
     try:
-        commands.blender(env_name, debug=debug)
+        commands.blender(env_name, blend_file=blend_file, debug=debug)
     except BlenvError as e:
         typer.echo(e)
         raise typer.Exit(code=1)

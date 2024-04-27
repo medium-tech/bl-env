@@ -84,6 +84,8 @@ class BlenderEnv(BaseModel):
     env_inherit: bool = True
     env_override: bool = True
 
+    file: str | None = None
+
     args: list[str] | None = None
     
     background: bool = False
@@ -114,7 +116,7 @@ class BlenderEnv(BaseModel):
         
         return self
 
-    def get_bl_run_args(self) -> list[str]:
+    def get_bl_run_args(self, blend_file:str|None = None) -> list[str]:
         args = [self.blender]
 
         if self.args is not None:
@@ -147,6 +149,12 @@ class BlenderEnv(BaseModel):
         if self.addons:
             # blender is expecting a comma separated list of addons
             args.extend(['--addon', ','.join(self.addons)])
+
+        if blend_file:
+            args.append(blend_file)
+            
+        elif self.file:
+            args.append(self.file)
 
         return args
     

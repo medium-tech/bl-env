@@ -61,7 +61,7 @@ def conf(conf_command: CLIConfCommand = CLIConfCommand.show, overwrite: bool = F
             raise ValueError(f'Unknown command: {conf_command}')
 
 
-def blender(env_name: str = 'default', debug: bool = False):
+def blender(env_name:str='default', blend_file:str|None=None, debug:bool=False):
     bl_conf = BlenvConf()
     bl_env = bl_conf.get(env_name)
 

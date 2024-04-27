@@ -78,8 +78,10 @@ The `blenv.yaml` file contains 1 or more blender environments. Each environment 
 
 * 🟢 auto generate a `.env` file
 
-* 🔴 add conf option to open specific .blend file
-* 🔴 add ability to override env's configured .blend file when using cli `run` command
+* 🟢 open blend files
+    * 🟢 add conf option to open specific .blend file
+    * 🟢 add ability to override env's configured .blend file when using cli `run` command
+    * 🟢 add tests to verify generated args via `BlenderEnv().get_bl_run_args()`
 
 * 🔴 create example app
     * 🔴 create unittests
