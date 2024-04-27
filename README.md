@@ -3,11 +3,11 @@
 ## Overview
 Blenv aims to be a combination of `venv` and `pyenv` for [Blender](https://www.blender.org) python projects. It uses a `blenv.yaml` for configuring 1 or more blender/python environments for a given project.
 
-The cli utility has a command to run blender using a selected environment. It will generate set blender cli options and environment variables that point blender to your current project so it can load your addon or app template while you develop it. When you're not developing you can run the same blender installation normally and it will not see your development environment so you can use blender normally.
+The cli utility has a command to run blender using a selected environment. It will generate blender cli options and environment variables that point blender to your current project so it can load your addon or app template as you develop it. This method doesn't pollute your system installation so that you can use blender normally you won't see the addons you're developing.
 
-You can define different environments to use different blender version or run python commands for example running tests.
+You can define different environments to use different blender versions or run python commands for example running tests.
 
-When using the cli, blender stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
+When using the blenv cli, blender stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
 
 ## Example
 
