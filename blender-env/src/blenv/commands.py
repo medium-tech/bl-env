@@ -3,7 +3,7 @@ from blenv import *
 
 from pprint import pprint
 from enum import Enum
-
+from pathlib import Path
 
 __all__ = [
     'CLIConfCommand',
@@ -24,17 +24,21 @@ def conf(conf_command: CLIConfCommand = CLIConfCommand.show, overwrite: bool = F
         case CLIConfCommand.create:
 
             # create bl-env.yaml file #
-
             default_blenv_conf = BlenvConf()
+            
+            project_name = input('Project name?')
+            if project_name != '':
+                default_blenv_conf.package.name = project_name
+
             try:
                 default_blenv_conf.dump_yaml_file(overwrite=overwrite)
-                print(f'wrote: {BLENV_CONFIG_FILENAME}')
+                print(f'wrote: {BLENV_DEFAULT_CONFIG_FILENAME}')
             except FileExistsError:
-                if input(f'{BLENV_CONFIG_FILENAME} already exists. Overwrite? [y/n] ') == 'y':
+                if input(f'{BLENV_DEFAULT_CONFIG_FILENAME} already exists. Overwrite? [y/n] ') == 'y':
                     default_blenv_conf.dump_yaml_file(overwrite=True)
-                    print(f'wrote: {BLENV_CONFIG_FILENAME}')
+                    print(f'wrote: {BLENV_DEFAULT_CONFIG_FILENAME}')
                 else:
-                    print(f'not overwriting: {BLENV_CONFIG_FILENAME}')
+                    print(f'not overwriting: {BLENV_DEFAULT_CONFIG_FILENAME}')
 
             # create .env file #
 
@@ -61,8 +65,8 @@ def conf(conf_command: CLIConfCommand = CLIConfCommand.show, overwrite: bool = F
             raise ValueError(f'Unknown command: {conf_command}')
 
 
-def blender(env_name:str='default', blend_file:str|None=None, debug:bool=False):
-    bl_conf = BlenvConf()
+def blender(env_name:str='default', blend_file:str='bl-env.conf', debug:bool=False):
+    bl_conf = BlenvConf.from_yaml_file(blend_file)
     bl_env = bl_conf.get(env_name)
 
     popen_args = bl_env.get_bl_run_args()
@@ -73,14 +77,9 @@ def blender(env_name:str='default', blend_file:str|None=None, debug:bool=False):
     else:
         run_blender(popen_args, **popen_kwargs)
 
+def package(blend_file:str):
+    bl_conf = BlenvConf.from_yaml_file(blend_file)
 
-def system(
-        args: list[str] | None = None, 
-        env_file: str | None = None,
-        env_inherit: bool = True,
-        env_override: bool = True,
-    ):
-
-    sys_bl_args = [find_blender()] + (args if args else [])
-
-    run_blender(sys_bl_args, env_file=env_file, env_inherit=env_inherit, env_override=env_override)
+    zip_path = Path(bl_conf.package.output) / f'{bl_conf.package.name}.zip'
+    
+    package_app(bl_conf.package.source, zip_path)

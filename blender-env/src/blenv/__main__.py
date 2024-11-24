@@ -18,10 +18,11 @@ def conf(
         typer.echo(e)
         raise typer.Exit(code=1)
 
+
 @app.command()
 def blender(
+        blend_file: Annotated[str, typer.Argument()] = BLENV_DEFAULT_CONFIG_FILENAME, 
         env_name: Annotated[str, typer.Argument()] = 'default', 
-        blend_file: Annotated[Optional[str], typer.Argument()] = None, 
         debug: bool = False
     ):
 
@@ -32,15 +33,11 @@ def blender(
         raise typer.Exit(code=1)
 
 @app.command()
-def system(
-        args: Annotated[Optional[list[str]], typer.Argument()] = None, 
-        env_file:Optional[str] = None,
-        env_inherit: bool = True,
-        env_override: bool = True,
+def package(
+        blend_file: Annotated[str, typer.Argument()] = BLENV_DEFAULT_CONFIG_FILENAME, 
     ):
-
     try:
-        commands.system(args, env_file=env_file, env_inherit=env_inherit, env_override=env_override)
+        commands.package(blend_file)
     except BlenvError as e:
         typer.echo(e)
         raise typer.Exit(code=1)

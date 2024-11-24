@@ -83,17 +83,15 @@ The `blenv.yaml` file contains 1 or more blender environments. Each environment 
     * 🟢 add ability to override env's configured .blend file when using cli `run` command
     * 🟢 add tests to verify generated args via `BlenderEnv().get_bl_run_args()`
 
-* 🔴 create example app
-    * 🔴 create unittests
+* 🔴 add package command
+* 🔴 add app template cli arg
+* 🔴 example apps
+    * 🔴 hello donut app template
+    * 🔴 hello world addon
+
+* 🔴 unittests
 
 * 🔴 add licence, make repo public, add to pypi
-
-* 🔴 link / unlink / list links for app templates and addons
-
-* 🔴 create project template for addon
-    * 🔴 emit build script
-* 🔴 create project template for "app template"
-    * 🔴 emit build script
 
 * 🔴 add user global preferences with a defined default blender path
     * 🔴 when creating blenv.yaml reference user default blender

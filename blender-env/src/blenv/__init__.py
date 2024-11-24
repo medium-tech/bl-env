@@ -4,6 +4,7 @@ import sys
 import time
 import subprocess
 import yaml
+import zipfile
 
 from pathlib import Path
 from typing import Literal
@@ -19,14 +20,15 @@ from typing_extensions import Self
 
 __all__ = [
     'BLENDER_SEARCH_PATHS',
-    'BLENV_CONFIG_FILENAME',
+    'BLENV_DEFAULT_CONFIG_FILENAME',
     'BLENV_DEFAULT_ENV_FILENAME',
     'BlenvError',
     'EnvVariables',
     'BlenderEnv',
     'BlenvConf',
     'find_blender',
-    'run_blender'
+    'run_blender',
+    'package_app',
 ]
 
 BLENDER_SEARCH_PATHS = [
@@ -36,7 +38,7 @@ BLENDER_SEARCH_PATHS = [
     'C:\\Program Files\\Blender Foundation\\Blender\\blender.exe'
 ]
 
-BLENV_CONFIG_FILENAME = '.blenv.yaml'
+BLENV_DEFAULT_CONFIG_FILENAME = '.blenv.yaml'
 BLENV_DEFAULT_ENV_FILENAME = '.env'
 
 #
@@ -173,8 +175,15 @@ class BlenvConfMeta(BaseModel):
     version: Literal['1'] = '1'
 
 
+class BlenderPackageConf(BaseModel):
+    name: str = 'my-project'
+    source: str = './src'
+    output: str = './dist'
+
+
 class BlenvConf(BaseModel):
     blenv: BlenvConfMeta = Field(default_factory=BlenvConfMeta)
+    package: BlenderPackageConf = Field(default_factory=BlenderPackageConf)
     environments: dict[str, BlenderEnv] = Field(default_factory=_default_blender_env)
 
     def get(self, key: str) -> BlenderEnv:
@@ -204,7 +213,7 @@ class BlenvConf(BaseModel):
         }
         return yaml.safe_dump(data, stream=stream)
     
-    def dump_yaml_file(self, path: Path | str = BLENV_CONFIG_FILENAME, overwrite:bool = False) -> None:
+    def dump_yaml_file(self, path: Path | str = BLENV_DEFAULT_CONFIG_FILENAME, overwrite:bool = False) -> None:
         path = Path(path)
         if path.exists() and not overwrite:
             raise FileExistsError(f'File already exists: {path}')
@@ -213,7 +222,7 @@ class BlenvConf(BaseModel):
             self.dump_yaml(stream=f)
     
     @classmethod
-    def from_yaml(cls, data: str) -> 'BlenderEnv':
+    def from_yaml(cls, data: str) -> 'BlenvConf':
         raw_data = yaml.safe_load(data)
 
         child_enviros = {}
@@ -240,7 +249,7 @@ class BlenvConf(BaseModel):
         return cls(blenv=BlenvConfMeta(**raw_data['blenv']), environments=enviros)
     
     @classmethod
-    def from_yaml_file(cls, path: Path | str = BLENV_CONFIG_FILENAME) -> 'BlenderEnv':
+    def from_yaml_file(cls, path: Path | str = BLENV_DEFAULT_CONFIG_FILENAME) -> 'BlenvConf':
         with open(Path(path), 'r') as f:
             return cls.from_yaml(f.read())
         
@@ -295,3 +304,23 @@ def run_blender(
                 time.sleep(.25)
             except KeyboardInterrupt:
                 break
+
+def package_app(source_dir:str, output:str) -> None:
+    # get sources recursively and filter out .DS_Store files
+
+    sources = []
+    for root, dirs, files in os.walk(source_dir):
+        for file in files:
+            if file != '.DS_Store':
+                path = os.path.join(root, file)
+                sources.append(path)
+
+    output:Path = Path(output)
+    os.makedirs(output.parent, exist_ok=True)
+
+    with zipfile.ZipFile(output, 'w') as zipf:
+        for source in sources:
+            zipf.write(source, source)
+            print(f' -> zipping: {source}')
+
+    print(f'wrote: {output}')
