@@ -1,5 +1,13 @@
 blenv:
   version: '1'
+
+project:
+  name: 'my-blender-app'
+  source: 'my-blender-app'
+
+package:
+  output: 'dist'
+
 environments:
   default:
     blender: /Applications/Blender.app/Contents/MacOS/Blender

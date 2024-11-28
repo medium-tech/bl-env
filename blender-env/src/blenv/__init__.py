@@ -8,6 +8,7 @@ import zipfile
 
 from pathlib import Path
 from typing import Literal
+from pprint import pprint
 
 from dotenv import load_dotenv, dotenv_values
 from pydantic import BaseModel, Field, model_validator
@@ -20,13 +21,15 @@ from typing_extensions import Self
 
 __all__ = [
     'BLENDER_SEARCH_PATHS',
-    'BLENV_DEFAULT_CONFIG_FILENAME',
+    'BLENV_CONFIG_FILENAME',
     'BLENV_DEFAULT_ENV_FILENAME',
     'BlenvError',
     'EnvVariables',
     'BlenderEnv',
     'BlenvConf',
+    'create_bl_env',
     'find_blender',
+    'run_blender_from_env',
     'run_blender',
     'package_app',
 ]
@@ -38,16 +41,15 @@ BLENDER_SEARCH_PATHS = [
     'C:\\Program Files\\Blender Foundation\\Blender\\blender.exe'
 ]
 
-BLENV_DEFAULT_CONFIG_FILENAME = '.blenv.yaml'
+BLENV_CONFIG_FILENAME = '.blenv.yaml'
 BLENV_DEFAULT_ENV_FILENAME = '.env'
-
-#
-# .env
-#
 
 class BlenvError(Exception):
     pass
 
+#
+# conf models
+#
 
 class EnvVariables(BaseModel):
 
@@ -71,10 +73,6 @@ class EnvVariables(BaseModel):
     def from_env_file(cls, path: Path | str = BLENV_DEFAULT_ENV_FILENAME) -> 'EnvVariables':
         env = dotenv_values(dotenv_path=path)
         return cls(**env)
-    
-#
-# blenv
-#
 
 
 class BlenderEnv(BaseModel):
@@ -92,6 +90,8 @@ class BlenderEnv(BaseModel):
     
     background: bool = False
     autoexec: bool = False
+
+    app_template: str | None = None
 
     python: str | None = None 
     python_text: str | None = None
@@ -111,7 +111,7 @@ class BlenderEnv(BaseModel):
     def check_defaults(self) -> Self:
         inherit_set = self.inherit is not None
         if self.blender is None and not inherit_set:
-            raise ValueError('"blender" must be set if "inherit" is not set')
+            raise ValueError('Must set either "blender" or "inherit" option on environment')
         
         if self.env_file is None and not inherit_set:
             raise ValueError('"env_file" must be set if "inherit" is not set')
@@ -129,6 +129,9 @@ class BlenderEnv(BaseModel):
 
         if self.autoexec:
             args.append('--enable-autoexec')
+
+        if self.app_template:
+            args.extend(['--app-template', self.app_template])
 
         if self.python:
             args.extend(['--python', self.python])
@@ -167,39 +170,34 @@ class BlenderEnv(BaseModel):
             'env_override': self.env_override,
         }
 
-def _default_blender_env() -> BlenderEnv:
-    return {'default': BlenderEnv.default()}
-
 
 class BlenvConfMeta(BaseModel):
     version: Literal['1'] = '1'
 
 
-class BlenderPackageConf(BaseModel):
+class BlenderProjectConf(BaseModel):
     name: str = 'my-project'
-    source: str = './src'
+    source: str = './my-project'
+
+
+class BlenderPackageConf(BaseModel):
     output: str = './dist'
 
 
 class BlenvConf(BaseModel):
     blenv: BlenvConfMeta = Field(default_factory=BlenvConfMeta)
+    project: BlenderProjectConf = Field(default_factory=BlenderProjectConf)
     package: BlenderPackageConf = Field(default_factory=BlenderPackageConf)
-    environments: dict[str, BlenderEnv] = Field(default_factory=_default_blender_env)
+    environments: dict[str, BlenderEnv] = Field(default_factory=lambda: {'default': BlenderEnv.default()})
 
-    def get(self, key: str) -> BlenderEnv:
+    def get(self, env_name: str) -> BlenderEnv:
         try:
-            return self.environments[key]
+            return self.environments[env_name]
         except KeyError:
-            raise BlenvError(f'No such environment: {key}')
+            raise BlenvError(f'No such environment: {env_name}')
         
     def get_default(self) -> BlenderEnv:
         return self.get('default')
-    
-    def get_names(self) -> list[str]:
-        return list(self.environments.keys())
-    
-    def items(self) -> list[tuple[str, BlenderEnv]]:
-        return list(self.environments.items())
     
     def dump_yaml(self, stream=None, full=False) -> str:
         enviros = {}
@@ -213,7 +211,7 @@ class BlenvConf(BaseModel):
         }
         return yaml.safe_dump(data, stream=stream)
     
-    def dump_yaml_file(self, path: Path | str = BLENV_DEFAULT_CONFIG_FILENAME, overwrite:bool = False) -> None:
+    def dump_yaml_file(self, path: Path | str = BLENV_CONFIG_FILENAME, overwrite:bool = False) -> None:
         path = Path(path)
         if path.exists() and not overwrite:
             raise FileExistsError(f'File already exists: {path}')
@@ -249,28 +247,83 @@ class BlenvConf(BaseModel):
         return cls(blenv=BlenvConfMeta(**raw_data['blenv']), environments=enviros)
     
     @classmethod
-    def from_yaml_file(cls, path: Path | str = BLENV_DEFAULT_CONFIG_FILENAME) -> 'BlenvConf':
+    def from_yaml_file(cls, path: Path | str = BLENV_CONFIG_FILENAME) -> 'BlenvConf':
         with open(Path(path), 'r') as f:
             return cls.from_yaml(f.read())
         
 #
-# blender
+# ops / commands
 #
 
-def find_blender() -> str:
-    for path in BLENDER_SEARCH_PATHS:
+
+def create_bl_env():
+    """interactively create a new bl-env.yaml file and .env file"""
+
+    # create bl-env.yaml file #
+
+    default_blenv_conf = BlenvConf()
+    
+    project_name = input('Project name?')
+    if project_name != '':
+        default_blenv_conf.package.name = project_name
+
+    try:
+        default_blenv_conf.dump_yaml_file()
+        print(f'wrote: {BLENV_CONFIG_FILENAME}')
+
+    except FileExistsError:
+        if input(f'{BLENV_CONFIG_FILENAME} already exists. Overwrite? [y/n] ') == 'y':
+            default_blenv_conf.dump_yaml_file(overwrite=True)
+            print(f'wrote: {BLENV_CONFIG_FILENAME}')
+        else:
+            print(f'not overwriting: {BLENV_CONFIG_FILENAME}')
+
+    # create .env file #
+
+    default_env_file = EnvVariables()
+    try:
+        default_env_file.dump_env_file()
+        print(f'wrote: {BLENV_DEFAULT_ENV_FILENAME}')
+    except FileExistsError:
+        if input(f'{BLENV_DEFAULT_ENV_FILENAME} already exists. Overwrite? [y/n] ') == 'y':
+            default_env_file.dump_env_file(overwrite=True)
+            print(f'wrote: {BLENV_DEFAULT_ENV_FILENAME}')
+        else:
+            print(f'not overwriting: {BLENV_DEFAULT_ENV_FILENAME}')
+
+
+def find_blender(search_paths:list[str] = BLENDER_SEARCH_PATHS) -> str:
+    """find blender executable in search paths, return first found path or 'blender' if none are found"""
+    for path in search_paths:
         if os.path.exists(path):
             return path
     return 'blender'
 
 
+def run_blender_from_env(env_name:str='default', blend_file:str=BLENV_CONFIG_FILENAME, debug:bool=False):
+    """run blender with specified environment, or default environment if not specified"""
+    bl_conf = BlenvConf.from_yaml_file(blend_file)
+    bl_env = bl_conf.get(env_name)
+
+    popen_args = bl_env.get_bl_run_args()
+    popen_kwargs = bl_env.get_bl_run_kwargs()
+
+    if debug:
+        pprint({'popen_args': popen_args, 'popen_kwargs': popen_kwargs})
+    else:
+        run_blender(popen_args, **popen_kwargs)
+
 def run_blender(
         args: list[str], 
-        # environment: None | dict[str, str] = None,
         env_file: str | None = None,
         env_inherit: bool = True,
         env_override: bool = True,
-    ) -> None:
+    ) -> int:
+    """run blender with specified args and environment variables as subprocess,
+    passing stdout and stderr to the parent process, returning the exit code.
+    Use Ctl-C to terminate the blender process and restart to load code changes.
+    Use Ctl-C twice to terminate blender and exit the parent process.
+    """
 
     # init #
 
@@ -304,19 +357,30 @@ def run_blender(
                 time.sleep(.25)
             except KeyboardInterrupt:
                 break
+    
+    return proc.returncode
 
 def package_app(source_dir:str, output:str) -> None:
-    # get sources recursively and filter out .DS_Store files
+    """write source files from source_dir into a zip file at output path"""
+
+    # collect source files
 
     sources = []
-    for root, dirs, files in os.walk(source_dir):
+    for root, _, files in os.walk(source_dir):
         for file in files:
-            if file != '.DS_Store':
-                path = os.path.join(root, file)
-                sources.append(path)
+            path = os.path.join(root, file)
+            if '__pycache__' in path:
+                continue
+            if path.endswith('.DS_Store'):
+                continue
+            if path.endswith('blend1'):
+                continue
+            sources.append(path)
 
     output:Path = Path(output)
     os.makedirs(output.parent, exist_ok=True)
+
+    # zip sources
 
     with zipfile.ZipFile(output, 'w') as zipf:
         for source in sources:

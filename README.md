@@ -1,17 +1,15 @@
 # Blenv - Blender Environment Manager
 
 ## Overview
-Blenv aims to be a combination of `venv` and `pyenv` for [Blender](https://www.blender.org) python projects. It uses a `blenv.yaml` for configuring 1 or more blender/python environments for a given project.
+Blenv aims to be a combination of `venv` and `pyenv` for [Blender](https://www.blender.org) python projects. It uses a `blenv.yaml` for configuring 1 or more blender/python environments for a given project. This project makes setting up a development environment for blender app templates and add ons simple.
 
-The cli utility has a command to run blender using a selected environment. It will generate blender cli options and environment variables that point blender to your current project so it can load your addon or app template as you develop it. This method doesn't pollute your system installation so that you can use blender normally you won't see the addons you're developing.
+The cli utility has a command to run blender using a selected environment. It will generate blender cli options and environment variables that point blender to your current project so it can load your addon or app template as you develop it. It add hot-reloading to your development workflow and allows you to run your addon or app template without copying or linking your code to blender's script directories. This speeds up your workflow and also keeps your blender installation clean of all your test applications. It also includes a package command that zips up your code for distribution. You can define multiple environments in one project test against different blender versions or run python commands.
 
-You can define different environments to use different blender versions or run python commands for example running tests.
-
-When using the blenv cli, blender stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
+When using the blenv cli to run blender, blender stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
 
 ## Example
 
-The following `blenv.yaml` file defines 4 environments, 1 default which uses the system blender, 2 for running against specific blender versions, and another for running tests.
+The following `blenv.yaml` file defines 4 environments, 1 default which uses the system blender, 2 for running against specific blender versions, and another for running unittests.
 
     blenv:
         version: '1'
@@ -46,7 +44,6 @@ The following `blenv.yaml` file defines 4 environments, 1 default which uses the
 The `blenv.yaml` file contains 1 or more blender environments. Each environment is a top level attribute which is the name of the environment when using the cli. Each environment contains the following options:
 
 
-
 | blenv.yaml | blender cli arg | type | description | default |
 | -- | -- | -- | -- | -- |
 | `inherit` | N/A | `str` / `null` | if not `null`, a `str` of the name of another blenv in this file, this blenv will be a duplicate of the parent with the remaining options overriding parent or default values | `null` |
@@ -57,6 +54,7 @@ The `blenv.yaml` file contains 1 or more blender environments. Each environment 
 | `args` | N/A | `list[str]` / `null` | launch blender with `blender` prepended to these arguments, ignores all other options that set a blender cli argument | `null` |
 | `background` | `--background` | `bool` | If `true`, supply the blender arg to run blender in the background (headless / no ui) | `false` |
 | `autoexec` | `--enable-autoexec` | `bool` | if `true`, supply the blender arg to enable automatic Python script execution | `false` |
+| `app_template` | `--app-template` | `str` | if given supply app template cli option to blender | `null`
 | `python` | `--python` | `str` | Run the given Python script file | `null` |
 | `python_text` | `--python-text` | `str` | Run the given Python script text block | `null` |
 | `python_expr` | `--python-expr` | `str` | Run the given expression as a Python script | `null` |
@@ -83,13 +81,16 @@ The `blenv.yaml` file contains 1 or more blender environments. Each environment 
     * 🟢 add ability to override env's configured .blend file when using cli `run` command
     * 🟢 add tests to verify generated args via `BlenderEnv().get_bl_run_args()`
 
-* 🔴 add package command
-* 🔴 add app template cli arg
-* 🔴 example apps
-    * 🔴 hello donut app template
-    * 🔴 hello world addon
+* 🟡 add package command
+* 🟡 add app template cli arg
+* 🟡 example apps
+    * 🟡 hello donut app template
+    * 🔴 hello donut addon
+    * 🔴 advanced addon with app template and addon
 
 * 🔴 unittests
+
+* 🔴 update README documentation
 
 * 🔴 add licence, make repo public, add to pypi
 

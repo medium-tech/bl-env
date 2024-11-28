@@ -1,46 +1,64 @@
 #!/usr/bin/env python3
-import typer
-from typing import Annotated, Optional
 from blenv import *
-from blenv import commands
+
+from typer import Typer, Argument, Exit, echo
+from typing import Annotated
+from pathlib import Path
+from enum import Enum
 
 
-app = typer.Typer(help='Blender Environment CLI')
+app = Typer(help='Blender Environment CLI')
 
-@app.command()
-def conf(
-        conf_command: Annotated[commands.CLIConfCommand, typer.Argument()] = commands.CLIConfCommand.show,
-        overwrite: bool = False
-    ):
-    try:
-        commands.conf(conf_command, overwrite=overwrite)
-    except BlenvError as e:
-        typer.echo(e)
-        raise typer.Exit(code=1)
-
+class ConfCommands(str, Enum):
+    create = 'create'
+    test = 'test'
+    show = 'show'
 
 @app.command()
-def blender(
-        blend_file: Annotated[str, typer.Argument()] = BLENV_DEFAULT_CONFIG_FILENAME, 
-        env_name: Annotated[str, typer.Argument()] = 'default', 
-        debug: bool = False
-    ):
-
+def conf(conf_command: Annotated[ConfCommands, Argument()] = ConfCommands.show):
+    """
+    Create, test or show the configuration of the current blender environment
+    """
     try:
-        commands.blender(env_name, blend_file=blend_file, debug=debug)
+        if conf_command == ConfCommands.create:
+            create_bl_env()
+
+        elif conf_command == ConfCommands.test:
+            BlenvConf.from_yaml_file()
+            EnvVariables.from_env_file()
+
+        elif conf_command == ConfCommands.show:
+            print(BlenvConf.from_yaml_file().dump_yaml())
+            print(EnvVariables.from_env_file().dump_env())
+        
+        else:
+            raise ValueError(f'Unknown command: {conf_command}')
     except BlenvError as e:
-        typer.echo(e)
-        raise typer.Exit(code=1)
+        echo(e)
+        raise Exit(code=1)
 
 @app.command()
-def package(
-        blend_file: Annotated[str, typer.Argument()] = BLENV_DEFAULT_CONFIG_FILENAME, 
-    ):
+def blender(env_name: Annotated[str, Argument()] = 'default', debug: bool = False):
+    """run blender with specified environment, or default environment if not specified"""
+
     try:
-        commands.package(blend_file)
+        run_blender_from_env(env_name, debug=debug)
     except BlenvError as e:
-        typer.echo(e)
-        raise typer.Exit(code=1)
+        echo(e)
+        raise Exit(code=1)
+
+@app.command()
+def package():
+    """package blender project"""
+    try:
+
+        bl_conf:BlenvConf = BlenvConf.from_yaml_file(BLENV_CONFIG_FILENAME)
+        zip_path = Path(bl_conf.package.output) / f'{bl_conf.project.name}.zip'
+        package_app(bl_conf.package.source, zip_path)
+
+    except BlenvError as e:
+        echo(e)
+        raise Exit(code=1)
 
 if __name__ == "__main__":
     app()
