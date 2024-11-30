@@ -1,0 +1,11 @@
+blenv:
+  version: '1'
+environments:
+  default:
+    blender: /Applications/Blender.app/Contents/MacOS/Blender
+    env_file: .env
+package:
+  output: ./dist
+project:
+  name: hello_donut
+  source: /Users/brad/Code/BlenderProjects/bl-env/examples/bl-hello-app-template/hello_donut

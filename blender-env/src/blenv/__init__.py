@@ -207,17 +207,20 @@ class BlenvConf(BaseModel):
 
         data = {
             'blenv': self.blenv.model_dump(),
+            'project': self.project.model_dump(),
+            'package': self.package.model_dump(),
             'environments': enviros
         }
+
         return yaml.safe_dump(data, stream=stream)
     
-    def dump_yaml_file(self, path: Path | str = BLENV_CONFIG_FILENAME, overwrite:bool = False) -> None:
+    def dump_yaml_file(self, path: Path|str = BLENV_CONFIG_FILENAME, overwrite:bool=False, full:bool=False) -> None:
         path = Path(path)
         if path.exists() and not overwrite:
             raise FileExistsError(f'File already exists: {path}')
         
         with open(path, 'w') as f:
-            self.dump_yaml(stream=f)
+            self.dump_yaml(stream=f, full=full)
     
     @classmethod
     def from_yaml(cls, data: str) -> 'BlenvConf':
@@ -261,19 +264,20 @@ def create_bl_env():
 
     # create bl-env.yaml file #
 
-    default_blenv_conf = BlenvConf()
+    blenv = BlenvConf()
     
-    project_name = input('Project name?')
+    project_name = input('Project name? [my-project] ')
     if project_name != '':
-        default_blenv_conf.package.name = project_name
+        blenv.project.name = project_name
+        blenv.project.source = Path(os.path.join(os.getcwd(), project_name)).absolute().as_posix()
 
     try:
-        default_blenv_conf.dump_yaml_file()
+        blenv.dump_yaml_file()
         print(f'wrote: {BLENV_CONFIG_FILENAME}')
 
     except FileExistsError:
-        if input(f'{BLENV_CONFIG_FILENAME} already exists. Overwrite? [y/n] ') == 'y':
-            default_blenv_conf.dump_yaml_file(overwrite=True)
+        if input(f'{BLENV_CONFIG_FILENAME} already exists. Overwrite? [y/n] ').lower() == 'y':
+            blenv.dump_yaml_file(overwrite=True)
             print(f'wrote: {BLENV_CONFIG_FILENAME}')
         else:
             print(f'not overwriting: {BLENV_CONFIG_FILENAME}')
@@ -281,11 +285,13 @@ def create_bl_env():
     # create .env file #
 
     default_env_file = EnvVariables()
+    if project_name != '':
+        default_env_file.BLENDER_USER_SCRIPTS = blenv.project.source
     try:
         default_env_file.dump_env_file()
         print(f'wrote: {BLENV_DEFAULT_ENV_FILENAME}')
     except FileExistsError:
-        if input(f'{BLENV_DEFAULT_ENV_FILENAME} already exists. Overwrite? [y/n] ') == 'y':
+        if input(f'{BLENV_DEFAULT_ENV_FILENAME} already exists. Overwrite? [y/n] ').lower() == 'y':
             default_env_file.dump_env_file(overwrite=True)
             print(f'wrote: {BLENV_DEFAULT_ENV_FILENAME}')
         else:

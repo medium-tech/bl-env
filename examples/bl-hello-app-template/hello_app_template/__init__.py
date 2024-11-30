@@ -20,7 +20,6 @@ import bpy
 from bpy.app.handlers import persistent
 from pathlib import Path
 
-
 #
 # app startup
 #
