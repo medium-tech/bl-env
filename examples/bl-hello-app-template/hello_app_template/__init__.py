@@ -77,3 +77,5 @@ def unregister():
 
     for handler in reversed(load_post_handlers):
         bpy.app.handlers.load_post.remove(handler)
+
+print('hello app template loaded')

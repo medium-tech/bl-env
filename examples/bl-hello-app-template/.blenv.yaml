@@ -4,8 +4,9 @@ environments:
   default:
     blender: /Applications/Blender.app/Contents/MacOS/Blender
     env_file: .env
+    app_template: hello_app_template
 package:
   output: ./dist
 project:
-  name: hello_donut
-  source: /Users/brad/Code/BlenderProjects/bl-env/examples/bl-hello-app-template/hello_donut
+  name: hello_app_template
+  source: /Users/brad/Code/BlenderProjects/bl-env/examples/bl-hello-app-template/hello_app_template
