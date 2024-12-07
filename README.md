@@ -99,7 +99,32 @@ The `blenv.yaml` file contains 1 or more blender environments. Each environment 
     * 🔴 enabling downloading arbitrary versions https://download.blender.org/release/
         * 🔴 store them in user folder (yaml files can reference by version instead of path)
     
-    
+
+
+```
+
+my-project-repo
+    .blenv.yaml
+    .blenv
+        bl
+            scripts
+                startup
+                    bl_app_templates_user
+        venv3.11
+            ...
+    dist
+        target1.zip
+    src
+        my_app
+            __init__.py
+
+```
+
+
+
+
+
+
     
 ## app template project layout
 ```

@@ -1,12 +1,31 @@
 blenv:
   version: '1'
+
+project:
+  app_templates:
+    hello_app_template:
+      source: 'src/hello_app_template'
+
+  extensions:
+    hello_extension:
+      source: 'src/hello_addon'
+
 environments:
   default:
     blender: /Applications/Blender.app/Contents/MacOS/Blender
-    env_file: .env
-    app_template: hello_app_template
-package:
-  output: ./dist
-project:
-  name: hello_app_template
-  source: /Users/brad/Code/BlenderProjects/bl-env/examples/bl-hello-app-template/hello_app_template
+    venv: '.blenv/venv3.11'
+    extensions:
+      - 'hello_extension'
+
+  app:
+    blender: /Applications/Blender.app/Contents/MacOS/Blender
+    app_template: 'hello_app_template'
+    extensions:
+      - 'hello_extension'
+
+  test:
+    blender: /Applications/Blender.app/Contents/MacOS/Blender
+    app_template: 'hello_app_template'
+    extensions:
+      - 'hello_extension'
+    python: 'test/test_extension.py'

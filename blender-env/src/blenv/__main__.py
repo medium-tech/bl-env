@@ -47,18 +47,5 @@ def blender(env_name: Annotated[str, Argument()] = 'default', debug: bool = Fals
         echo(e)
         raise Exit(code=1)
 
-@app.command()
-def package():
-    """package blender project"""
-    try:
-
-        bl_conf:BlenvConf = BlenvConf.from_yaml_file(BLENV_CONFIG_FILENAME)
-        zip_path = Path(bl_conf.package.output) / f'{bl_conf.project.name}.zip'
-        package_app(bl_conf.package.source, zip_path)
-
-    except BlenvError as e:
-        echo(e)
-        raise Exit(code=1)
-
 if __name__ == "__main__":
     app()
