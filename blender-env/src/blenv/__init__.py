@@ -4,7 +4,7 @@ import sys
 import time
 import subprocess
 import yaml
-import zipfile
+import venv
 
 from pathlib import Path
 from typing import Literal
@@ -24,14 +24,14 @@ __all__ = [
     'BLENV_CONFIG_FILENAME',
     'BLENV_DEFAULT_ENV_FILENAME',
     'BlenvError',
-    'EnvVariables',
+    # 'EnvVariables',
     'BlenderEnv',
     'BlenvConf',
+    'setup_bl_env',
     'create_bl_env',
     'find_blender',
     'run_blender_from_env',
-    'run_blender',
-    'package_app',
+    'run_blender'
 ]
 
 BLENDER_SEARCH_PATHS = [
@@ -53,7 +53,7 @@ class BlenvError(Exception):
 
 class EnvVariables(BaseModel):
 
-    BLENDER_USER_SCRIPTS: str = Field(default_factory=lambda: os.path.join(os.getcwd(), 'src'))
+    BLENDER_USER_RESOURCES: str
 
     def dump_env(self) -> str:
         _env = ''
@@ -105,16 +105,13 @@ class BlenderEnv(BaseModel):
 
     @classmethod
     def default(cls) -> 'BlenderEnv':
-        return cls(blender=find_blender(), env_file='.env')
+        return cls(blender=find_blender(), env_file=BLENV_DEFAULT_ENV_FILENAME)
     
     @model_validator(mode='after')
     def check_defaults(self) -> Self:
         inherit_set = self.inherit is not None
         if self.blender is None and not inherit_set:
             raise ValueError('Must set either "blender" or "inherit" option on environment')
-        
-        if self.env_file is None and not inherit_set:
-            raise ValueError('"env_file" must be set if "inherit" is not set')
         
         return self
 
@@ -153,7 +150,7 @@ class BlenderEnv(BaseModel):
 
         if self.addons:
             # blender is expecting a comma separated list of addons
-            args.extend(['--addon', ','.join(self.addons)])
+            args.extend(['--addons', ','.join(self.addons)])
 
         if blend_file:
             args.append(blend_file)
@@ -174,20 +171,16 @@ class BlenderEnv(BaseModel):
 class BlenvConfMeta(BaseModel):
     version: Literal['1'] = '1'
 
+class BlenderExtension(BaseModel):
+    source: str
 
 class BlenderProjectConf(BaseModel):
-    name: str = 'my-project'
-    source: str = './my-project'
-
-
-class BlenderPackageConf(BaseModel):
-    output: str = './dist'
-
+    app_templates: dict[str, BlenderExtension] = Field(default_factory=dict)
+    addons: dict[str, BlenderExtension] = Field(default_factory=dict)
 
 class BlenvConf(BaseModel):
     blenv: BlenvConfMeta = Field(default_factory=BlenvConfMeta)
     project: BlenderProjectConf = Field(default_factory=BlenderProjectConf)
-    package: BlenderPackageConf = Field(default_factory=BlenderPackageConf)
     environments: dict[str, BlenderEnv] = Field(default_factory=lambda: {'default': BlenderEnv.default()})
 
     def get(self, env_name: str) -> BlenderEnv:
@@ -208,7 +201,6 @@ class BlenvConf(BaseModel):
         data = {
             'blenv': self.blenv.model_dump(),
             'project': self.project.model_dump(),
-            'package': self.package.model_dump(),
             'environments': enviros
         }
 
@@ -247,7 +239,11 @@ class BlenvConf(BaseModel):
             enviros[name] = parent_env.model_copy(update=child_env, deep=True)
             BlenderEnv.model_validate(enviros[name])
 
-        return cls(blenv=BlenvConfMeta(**raw_data['blenv']), environments=enviros)
+        return cls(
+            blenv=BlenvConfMeta(**raw_data['blenv']), 
+            project=BlenderProjectConf(**raw_data['project']), 
+            environments=enviros
+        )
     
     @classmethod
     def from_yaml_file(cls, path: Path | str = BLENV_CONFIG_FILENAME) -> 'BlenvConf':
@@ -258,6 +254,44 @@ class BlenvConf(BaseModel):
 # ops / commands
 #
 
+def setup_bl_env(blenv:BlenvConf):
+    """setup blender environment in current directory"""
+
+    blenv_directories = [
+        '.blenv/bl/scripts/bl_app_templates_user',
+        '.blenv/bl/scripts/addons/modules',
+        '.blenv/bl/extensions',
+    ]
+
+    for dir in blenv_directories:
+        os.makedirs(dir, exist_ok=True)
+
+    try:
+        for app_template in blenv.project.app_templates.values():
+            app_template_path = Path(app_template.source)
+            src = app_template_path.absolute()
+            dest = Path(f'.blenv/bl/scripts/bl_app_templates_user/{app_template_path.name}').absolute()
+            try:
+                os.symlink(src, dest, target_is_directory=True)
+            except FileExistsError:
+                pass
+            print(f'linked: {src} -> {dest}')
+    except TypeError:
+        pass
+    
+    try:
+        for addon in blenv.project.addons.values():
+            addon_path = Path(addon.source)
+            src = addon_path.absolute()
+            dest = Path(f'.blenv/bl/scripts/addons/modules/{addon_path.name}').absolute()
+            try:
+                os.symlink(src, dest, target_is_directory=True)
+            except FileExistsError:
+                pass
+            print(f'linked: {src} -> {dest}')
+
+    except TypeError:
+        pass
 
 def create_bl_env():
     """interactively create a new bl-env.yaml file and .env file"""
@@ -265,11 +299,11 @@ def create_bl_env():
     # create bl-env.yaml file #
 
     blenv = BlenvConf()
-    
-    project_name = input('Project name? [my-project] ')
-    if project_name != '':
-        blenv.project.name = project_name
-        blenv.project.source = Path(os.path.join(os.getcwd(), project_name)).absolute().as_posix()
+
+    venv_path = f'.blenv/venv{sys.version_info.major}.{sys.version_info.minor}'
+    if not os.path.exists(venv_path):
+        if input(f'Create virtual environment {venv_path}? [y/n] ').lower() == 'y':
+            venv.create(venv_path, with_pip=True, upgrade_deps=True)
 
     try:
         blenv.dump_yaml_file()
@@ -282,21 +316,22 @@ def create_bl_env():
         else:
             print(f'not overwriting: {BLENV_CONFIG_FILENAME}')
 
+    setup_bl_env(blenv)
+
     # create .env file #
 
-    default_env_file = EnvVariables()
-    if project_name != '':
-        default_env_file.BLENDER_USER_SCRIPTS = blenv.project.source
+    env_file = EnvVariables(BLENDER_USER_RESOURCES=str(Path('.blenv/bl').absolute()))
+
     try:
-        default_env_file.dump_env_file()
+        env_file.dump_env_file()
         print(f'wrote: {BLENV_DEFAULT_ENV_FILENAME}')
+
     except FileExistsError:
         if input(f'{BLENV_DEFAULT_ENV_FILENAME} already exists. Overwrite? [y/n] ').lower() == 'y':
-            default_env_file.dump_env_file(overwrite=True)
+            env_file.dump_env_file(overwrite=True)
             print(f'wrote: {BLENV_DEFAULT_ENV_FILENAME}')
         else:
             print(f'not overwriting: {BLENV_DEFAULT_ENV_FILENAME}')
-
 
 def find_blender(search_paths:list[str] = BLENDER_SEARCH_PATHS) -> str:
     """find blender executable in search paths, return first found path or 'blender' if none are found"""
@@ -304,7 +339,6 @@ def find_blender(search_paths:list[str] = BLENDER_SEARCH_PATHS) -> str:
         if os.path.exists(path):
             return path
     return 'blender'
-
 
 def run_blender_from_env(env_name:str='default', blend_file:str=BLENV_CONFIG_FILENAME, debug:bool=False):
     """run blender with specified environment, or default environment if not specified"""
@@ -365,32 +399,3 @@ def run_blender(
                 break
     
     return proc.returncode
-
-def package_app(source_dir:str, output:str) -> None:
-    """write source files from source_dir into a zip file at output path"""
-
-    # collect source files
-
-    sources = []
-    for root, _, files in os.walk(source_dir):
-        for file in files:
-            path = os.path.join(root, file)
-            if '__pycache__' in path:
-                continue
-            if path.endswith('.DS_Store'):
-                continue
-            if path.endswith('blend1'):
-                continue
-            sources.append(path)
-
-    output:Path = Path(output)
-    os.makedirs(output.parent, exist_ok=True)
-
-    # zip sources
-
-    with zipfile.ZipFile(output, 'w') as zipf:
-        for source in sources:
-            zipf.write(source, source)
-            print(f' -> zipping: {source}')
-
-    print(f'wrote: {output}')

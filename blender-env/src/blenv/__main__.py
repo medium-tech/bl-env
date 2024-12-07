@@ -3,39 +3,24 @@ from blenv import *
 
 from typer import Typer, Argument, Exit, echo
 from typing import Annotated
-from pathlib import Path
-from enum import Enum
 
 
 app = Typer(help='Blender Environment CLI')
 
-class ConfCommands(str, Enum):
-    create = 'create'
-    test = 'test'
-    show = 'show'
+@app.command()
+def create():
+    """
+    Create a new blender environment in current directory
+    """
+    create_bl_env()
 
 @app.command()
-def conf(conf_command: Annotated[ConfCommands, Argument()] = ConfCommands.show):
+def setup():
     """
-    Create, test or show the configuration of the current blender environment
+    Setup blender environment in current directory, this is run during create, but can be run separately.
+    This is useful is a new app temnplate or addon is added to the environment and needs to be linked to the env.
     """
-    try:
-        if conf_command == ConfCommands.create:
-            create_bl_env()
-
-        elif conf_command == ConfCommands.test:
-            BlenvConf.from_yaml_file()
-            EnvVariables.from_env_file()
-
-        elif conf_command == ConfCommands.show:
-            print(BlenvConf.from_yaml_file().dump_yaml())
-            print(EnvVariables.from_env_file().dump_env())
-        
-        else:
-            raise ValueError(f'Unknown command: {conf_command}')
-    except BlenvError as e:
-        echo(e)
-        raise Exit(code=1)
+    setup_bl_env(BlenvConf.from_yaml_file())
 
 @app.command()
 def blender(env_name: Annotated[str, Argument()] = 'default', debug: bool = False):

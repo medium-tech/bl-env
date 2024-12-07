@@ -6,26 +6,25 @@ project:
     hello_app_template:
       source: 'src/hello_app_template'
 
-  extensions:
+  addons:
     hello_extension:
       source: 'src/hello_addon'
 
 environments:
   default:
     blender: /Applications/Blender.app/Contents/MacOS/Blender
-    venv: '.blenv/venv3.11'
-    extensions:
+    addons:
       - 'hello_extension'
 
   app:
     blender: /Applications/Blender.app/Contents/MacOS/Blender
     app_template: 'hello_app_template'
-    extensions:
+    addons:
       - 'hello_extension'
 
   test:
     blender: /Applications/Blender.app/Contents/MacOS/Blender
     app_template: 'hello_app_template'
-    extensions:
+    addons:
       - 'hello_extension'
     python: 'test/test_extension.py'
