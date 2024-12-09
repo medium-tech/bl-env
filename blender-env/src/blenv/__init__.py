@@ -24,7 +24,7 @@ __all__ = [
     'BLENV_CONFIG_FILENAME',
     'BLENV_DEFAULT_ENV_FILENAME',
     'BlenvError',
-    # 'EnvVariables',
+    'EnvVariables',
     'BlenderEnv',
     'BlenvConf',
     'setup_bl_env',
@@ -258,7 +258,7 @@ def setup_bl_env(blenv:BlenvConf):
     """setup blender environment in current directory"""
 
     blenv_directories = [
-        '.blenv/bl/scripts/bl_app_templates_user',
+        '.blenv/bl/scripts/startup/bl_app_templates_user',
         '.blenv/bl/scripts/addons/modules',
         '.blenv/bl/extensions',
     ]
@@ -270,7 +270,7 @@ def setup_bl_env(blenv:BlenvConf):
         for app_template in blenv.project.app_templates.values():
             app_template_path = Path(app_template.source)
             src = app_template_path.absolute()
-            dest = Path(f'.blenv/bl/scripts/bl_app_templates_user/{app_template_path.name}').absolute()
+            dest = Path(f'.blenv/bl/scripts/startup/bl_app_templates_user/{app_template_path.name}').absolute()
             try:
                 os.symlink(src, dest, target_is_directory=True)
             except FileExistsError:
@@ -314,6 +314,7 @@ def create_bl_env():
             blenv.dump_yaml_file(overwrite=True)
             print(f'wrote: {BLENV_CONFIG_FILENAME}')
         else:
+            blenv = BlenvConf.from_yaml_file()
             print(f'not overwriting: {BLENV_CONFIG_FILENAME}')
 
     setup_bl_env(blenv)
