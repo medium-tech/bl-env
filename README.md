@@ -1,11 +1,9 @@
 # Blenv - Blender Environment Manager
 
 ## Overview
-Blenv aims to be a combination of `venv` and `pyenv` for [Blender](https://www.blender.org) python projects. It uses a `blenv.yaml` for configuring 1 or more blender/python environments for a given project. This project makes setting up a development environment for blender app templates and add ons simple.
+Blenv is like `venv` for [Blender](https://www.blender.org) python projects. It uses a `blenv.yaml` for configuring 1 or more blender/python environments for a given project. This project makes setting up a development environment for blender app templates and add ons simple.
 
-The cli utility has a command to run blender using a selected environment. It will generate blender cli options and environment variables that point blender to your current project so it can load your addon or app template as you develop it. It add hot-reloading to your development workflow and allows you to run your addon or app template without copying or linking your code to blender's script directories. This speeds up your workflow and also keeps your blender installation clean of all your test applications. It also includes a package command that zips up your code for distribution. You can define multiple environments in one project test against different blender versions or run python commands.
-
-When using the blenv cli to run blender, blender stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
+The cli utility has a command to run blender using a selected environment. It will generate blender cli options and environment variables that point blender to your current project so it will load your addon or app template. You don't need to worry about making sure it's in the correct Blender folder. Plus, it adds hot-reloading to your development workflow. This speeds up your workflow and also keeps your blender installation clean of all your test applications. You can define multiple environments in one project test against different blender versions or run python commands.
 
 ## Example
 
@@ -38,6 +36,10 @@ The following `blenv.yaml` file defines 4 environments, 1 default which uses the
 ### cli
 ...
 
+When using the blenv cli to run blender, blender stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit
+
+...
+
 
 ### blenv.yaml
 
@@ -62,6 +64,7 @@ The `blenv.yaml` file contains 1 or more blender environments. Each environment 
 | `python_exit_code` | `--python-exit-code` | `int` | If non-negative supply this vallue to the `--python-exit-code` arg, which sets the exit-code in [0..255] to exit if a Python exception is raised (only for scripts executed from the command line), zero disables. | `-1` |
 | `python_use_system_env`  | `--python-use-system-env`| `bool` | Allow Python to use system environment variables such as PYTHONPATH and the user site-packages directory. | `false` |
 | `addons` | `--addons` | `list[str]` / `null` | Supply addons to enable in addition to default addons, the blender cli accepts a csv delimited string, but `blenv.yaml` takes a list of strings. | `null` |
+| `blender_file` | N/A | `str` | path to a `.blend` file to open | `null` |
 
 ## Roadmap
 🔴 = not started
@@ -81,98 +84,13 @@ The `blenv.yaml` file contains 1 or more blender environments. Each environment 
     * 🟢 add ability to override env's configured .blend file when using cli `run` command
     * 🟢 add tests to verify generated args via `BlenderEnv().get_bl_run_args()`
 
-* 🟡 add package command
-* 🟡 add app template cli arg
-* 🟡 example apps
-    * 🟡 hello donut app template
-    * 🔴 hello donut addon
-    * 🔴 advanced addon with app template and addon
+* 🟢 add app template cli arg
+* 🟢 example apps
+    * 🟢 hello donut app template
+    * 🟢 hello donut addon
 
 * 🔴 unittests
 
 * 🔴 update README documentation
 
 * 🔴 add licence, make repo public, add to pypi
-
-* 🔴 add user global preferences with a defined default blender path
-    * 🔴 when creating blenv.yaml reference user default blender
-    * 🔴 enabling downloading arbitrary versions https://download.blender.org/release/
-        * 🔴 store them in user folder (yaml files can reference by version instead of path)
-    
-
-
-```
-
-my-project-repo
-    .blenv.yaml
-    .blenv
-        bl
-            scripts
-                startup
-                    bl_app_templates_user
-        venv3.11
-            ...
-    dist
-        target1.zip
-    src
-        my_app
-            __init__.py
-
-```
-
-
-
-
-
-
-    
-## app template project layout
-```
-my_project/
-    bl-env.conf
-    .env
-    app_templates/
-        my_template/
-            __init__.py
-            startup.blend
-            splash.png
-            addons/
-                my_addon/
-                    __init__.py
-                    ui.py
-                    core.py
-```
-
-Build step will package the app template w/ addons and a standalone addon zip
-
-## addon only project layout
-```
-my_project/
-    bl-env.conf
-    my_addon/
-        __init__.py
-        ui.py
-        core.py
-```
-Build step will output a standalone addon zip
-
-## combo layout
-```
-my_project/
-    bl-env.conf
-    dist/
-        ...
-    addons/
-        my_addon/
-            __init__.py
-            ui.py
-            core.py
-            
-    app_templates/
-        my_template/
-            startup.blend
-            splash.png
-            __init__.py
-```
-
-Add on can easily be packaged into standalone .zip but for app template the add on needs to be available to the template to install, by copying either sources or addon.zip into it

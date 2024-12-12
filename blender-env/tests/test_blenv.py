@@ -65,8 +65,8 @@ def test_blend_files():
 
     default_env = conf.get('default')
     assert default_env.get_bl_run_args()[-1] == 'my_project.blend'
-    assert default_env.get_bl_run_args(blend_file='different.blend')[-1] == 'different.blend'
+    assert default_env.get_bl_run_args(blender_file='different.blend')[-1] == 'different.blend'
 
     test_env = conf.get('test')
     assert test_env.get_bl_run_args()[-1] == 'test.blend'
-    assert test_env.get_bl_run_args(blend_file='different.blend')[-1] == 'different.blend'
+    assert test_env.get_bl_run_args(blender_file='different.blend')[-1] == 'different.blend'

@@ -103,6 +103,8 @@ class BlenderEnv(BaseModel):
 
     addons: list[str] | None = Field(default=None)
 
+    blender_file: str | None = None
+
     @classmethod
     def default(cls) -> 'BlenderEnv':
         return cls(blender=find_blender(), env_file=BLENV_DEFAULT_ENV_FILENAME)
@@ -115,7 +117,7 @@ class BlenderEnv(BaseModel):
         
         return self
 
-    def get_bl_run_args(self, blend_file:str|None = None) -> list[str]:
+    def get_bl_run_args(self) -> list[str]:
         args = [self.blender]
 
         if self.args is not None:
@@ -152,8 +154,8 @@ class BlenderEnv(BaseModel):
             # blender is expecting a comma separated list of addons
             args.extend(['--addons', ','.join(self.addons)])
 
-        if blend_file:
-            args.append(blend_file)
+        if self.blender_file:
+            args.append(self.blender_file)
             
         elif self.file:
             args.append(self.file)
@@ -341,9 +343,9 @@ def find_blender(search_paths:list[str] = BLENDER_SEARCH_PATHS) -> str:
             return path
     return 'blender'
 
-def run_blender_from_env(env_name:str='default', blend_file:str=BLENV_CONFIG_FILENAME, debug:bool=False):
+def run_blender_from_env(env_name:str='default', blenv_file:str=BLENV_CONFIG_FILENAME, debug:bool=False):
     """run blender with specified environment, or default environment if not specified"""
-    bl_conf = BlenvConf.from_yaml_file(blend_file)
+    bl_conf = BlenvConf.from_yaml_file(blenv_file)
     bl_env = bl_conf.get(env_name)
 
     popen_args = bl_env.get_bl_run_args()
