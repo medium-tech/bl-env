@@ -1,5 +1,4 @@
 from blenv import BlenvConf, BlenvConfMeta
-from pathlib import Path
 
 __all__ = [
     'common_blenv_test',

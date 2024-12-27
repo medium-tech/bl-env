@@ -1,6 +1,4 @@
-import pytest
-from pydantic import ValidationError
-from blenv import BlenvConf, BlenvConfMeta
+from blenv import BlenvConf
 from pathlib import Path
 from conftest import basic_test, common_blenv_test
 

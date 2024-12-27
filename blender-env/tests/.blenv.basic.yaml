@@ -1,6 +1,0 @@
-blenv:
-  version: '1'
-environments:
-  default:
-    blender: /Applications/Blender.app/Contents/MacOS/Blender
-    env_file: .env
