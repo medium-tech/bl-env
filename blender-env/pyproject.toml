@@ -3,10 +3,10 @@ requires = ['setuptools>=61.0']
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = 'blender-env'
-version = '0.0.1'
+name = 'blenv'
+version = '0.0.1b0'
 authors = [
-  { name='Brad Corlett', email='brad.corlett@gmail.com' },
+  { name='Brad Corlett', email='medium.tech.dev@gmail.com' },
 ]
 description = 'A utility for creating and managing Blender development environments'
 readme = 'README.md'

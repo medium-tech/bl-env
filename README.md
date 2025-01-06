@@ -1,5 +1,7 @@
 # Blenv - Blender Environment Manager
 
+🔴 warning - blenv is in beta - api or config may change 🔴
+
 ## Overview
 Blenv is like `venv` for [Blender](https://www.blender.org) python projects. It uses a `blenv.yaml` for configuring 1 or more blender/python environments for a given project. This project makes setting up a development environment for blender app templates and add ons simple.
 

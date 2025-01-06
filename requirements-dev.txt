@@ -1,2 +1,2 @@
 -e blender-env/
-pytest
+twine
