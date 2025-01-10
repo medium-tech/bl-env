@@ -4,9 +4,9 @@
 
 [getting started](#getting-started)
 
-[blenv.yaml](#blenvyaml)
-
 [command line](#command-line-arguments)
+
+[blenv.yaml](#blenvyaml)
 
 ## Getting started
 Blenv can be installed in your system python or project's venv.
@@ -60,15 +60,34 @@ The `blender` command runs blender and loads the user's addon. This enables a qu
 
 More technically, the `blender` command calls the binary listed in `blender` under the `default` environment, it will use the `.env` file which overrides the blender's directory structure to use the `.blenv` folder. The `setup` command created a link under `.blenv` where blender expects addons to be. The addon is passed to the cli's `addons` option so that it loads. An environment can define addons, app templates, python scripts, or configure many other blender cli options. A developer can setup multiple environments that use different blender versions, run tests, open a specific blend file and more to speed up development.
 
+## command line arguments
+
+**create**  - create a new blender environment in current directory
+
+    python -m blenv create                                                                                                  
+
+**setup** - setup blender environment in current directory, this is run during create, but can be run separately if a new app temnplate or addon is added to the environment and needs to be linked to the env. 
+    
+    python -m blenv setup     
+
+**blender** - run blender with specified environment, or default environment if not specified. Blender's stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
+
+    python -m blenv blender [env_name] [--debug]
+
+**env_name** - optional, `default` if not provided
+
+**--debug** - optional, if provided, print the details of arguments that would be passed to the underlying `subprocess.Popen` constructor and exit.
+
+
 ## blenv.yaml
 
 The `blenv.yaml` file contains the following fields:
 
 | field name | type | description |
 | -- | -- | -- |
-| blenv | `obj` | defines the version of the blenv file |
-| project | `obj` | defines the addons and/or app templates for this project |
-| environments | list of [environment objects](#environment-config-object) | defines the environments and commands for this project |
+| blenv | [blenv object](#blenv-config-object) | defines the version of the blenv file |
+| project | [project object](#project-config-object) | defines the addons and/or app templates for this project |
+| environments | object of [environment objects](#environment-config-object) | defines the environments and commands for this project, keys are environment names and values are [environment objects](#environment-config-object) |
 
 ### blenv config object
 | field name | type | description |
@@ -109,23 +128,3 @@ blenv environment objects can be found in the [blenv.yaml](#blenvyaml) files und
 | `python_use_system_env`  | `--python-use-system-env`| `bool` | Allow Python to use system environment variables such as PYTHONPATH and the user site-packages directory. | `false` |
 | `addons` | `--addons` | `list[str]` / `null` | Supply addons to enable in addition to default addons, the blender cli accepts a csv delimited string, but `blenv.yaml` takes a list of strings. | `null` |
 | `blender_file` | N/A | `str` | path to a `.blend` file to open | `null` |
-
-## command line arguments
-
-**create**  - create a new blender environment in current directory
-
-    python -m blenv create                                                                                                  
-
-**setup** - setup blender environment in current directory, this is run during create, but can be run separately if a new app temnplate or addon is added to the environment and needs to be linked to the env. 
-    
-    python -m blenv setup     
-
-**blender** - run blender with specified environment, or default environment if not specified. Blender's stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
-
-    python -m blenv blender [env_name] [--debug]
-
-**env_name** - optional, `default` if not provided
-
-**--debug** - optional, if provided, print the details of arguments that would be passed to the underlying `subprocess.Popen` constructor and exit.
-
-
