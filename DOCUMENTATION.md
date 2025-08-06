@@ -56,11 +56,11 @@ After configuring the project, use the `setup` command to link the addon to the 
 
 Now, to run blender with the addon:
 
-    python -m blenv blender
+    python -m blenv run
 
-The `blender` command runs blender and loads the user's addon. This enables a quick and easy dev environment setup that would otherwise require custom scripts or using blender's directory structure which can get cluttered with all of the developer's other projects.
+The `run` command runs blender and loads the user's addon. This enables a quick and easy dev environment setup that would otherwise require custom scripts or using blender's directory structure which can get cluttered with all of the developer's other projects.
 
-More technically, the `blender` command calls the binary listed in `blender` under the `default` environment, it will use the `.env` file which overrides the blender's directory structure to use the `.blenv` folder. The `setup` command created a link under `.blenv` where blender expects addons to be. The addon is passed to the cli's `addons` option so that it loads. An environment can define addons, app templates, python scripts, or configure many other blender cli options. A developer can setup multiple environments that use different blender versions, run tests, open a specific blend file and more to speed up development.
+More technically, the `run` command calls the binary listed in `blender` under the `default` environment, it will use the `.env` file which overrides the blender's directory structure to use the `.blenv` folder. The `setup` command created a link under `.blenv` where blender expects addons to be. The addon is passed to the cli's `addons` option so that it loads. An environment can define addons, app templates, python scripts, or configure many other blender cli options. A developer can setup multiple environments that use different blender versions, run tests, open a specific blend file and more to speed up development.
 
 ## examples
 Examples are in the repository:
@@ -77,9 +77,9 @@ Examples are in the repository:
     
     python -m blenv setup     
 
-**blender** - run blender with specified environment, or default environment if `env_name` is omitted. Blender's stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it, effectively reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
+**run** - run blender with specified environment, or default environment if `env_name` is omitted. Blender's stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it,  reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
 
-    python -m blenv blender [env_name] [--debug]
+    python -m blenv run [env_name] [--debug]
 
 **env_name** - optional, `default` if not provided
 

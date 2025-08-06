@@ -173,12 +173,15 @@ class BlenderEnv(BaseModel):
 class BlenvConfMeta(BaseModel):
     version: Literal['1'] = '1'
 
+
 class BlenderExtension(BaseModel):
     source: str
+
 
 class BlenderProjectConf(BaseModel):
     app_templates: dict[str, BlenderExtension] = Field(default_factory=dict)
     addons: dict[str, BlenderExtension] = Field(default_factory=dict)
+
 
 class BlenvConf(BaseModel):
     blenv: BlenvConfMeta = Field(default_factory=BlenvConfMeta)
@@ -343,8 +346,14 @@ def find_blender(search_paths:list[str] = BLENDER_SEARCH_PATHS) -> str:
             return path
     return 'blender'
 
-def run_blender_from_env(env_name:str='default', blenv_file:str=BLENV_CONFIG_FILENAME, debug:bool=False):
-    """run blender with specified environment, or default environment if not specified"""
+def run_blender_from_env(env_name:str='default', blenv_file:str=BLENV_CONFIG_FILENAME, debug:bool=False, args: list[str]|None=None):
+    """
+    run blender with specified environment, or default environment if not specified
+    :param env_name: name of the environment to use, defaults to 'default'
+    :param blenv_file: path to the blenv config file, defaults to '.blenv.yaml'
+    :param debug: if True, print the args and kwargs that would be used to run blender instead of running it
+    :param args: if provided, overrides the args provided to the blender executable (rest of env is the same)
+    """
     bl_conf = BlenvConf.from_yaml_file(blenv_file)
     bl_env = bl_conf.get(env_name)
 
