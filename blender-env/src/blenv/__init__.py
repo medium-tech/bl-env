@@ -61,6 +61,7 @@ class BlenvError(Exception):
 class EnvVariables(BaseModel):
 
     BLENDER_USER_RESOURCES: str
+    PYTHONPATH: str
 
     def dump_env(self) -> str:
         _env = ''
@@ -338,8 +339,12 @@ def setup_bl_env(blenv:BlenvConf):
     except TypeError:
         pass
 
-def create_bl_env(use_venv: str | None = None):
-    """interactively create a new bl-env.yaml file and .env file"""
+def create_bl_env(use_venv:str|None=None, yes:bool=False):
+    """
+    interactively create a new bl-env.yaml file and .env file
+    :param use_venv: if provided, path to existing venv to use, otherwise will search for existing venv or create a new one
+    :param yes: if True, skip all prompts and assume 'yes' to all questions
+    """
 
     #
     # python venv
@@ -369,7 +374,7 @@ def create_bl_env(use_venv: str | None = None):
             print(f'found existing venv: {venv_path}')
             print(f'found site-packages: {site_packages_path}')
             
-            if input(f'Use this venv? [y/n] ').lower() == 'y':
+            if yes or input(f'Use this venv? [y/n] ').lower() == 'y':
                 pass
         else:
 
@@ -377,7 +382,7 @@ def create_bl_env(use_venv: str | None = None):
 
             venv_path = f'.blenv/venv{sys.version_info.major}.{sys.version_info.minor}'
             
-            if input(f'Create virtual environment {venv_path}? [y/n] ').lower() == 'y':
+            if yes or input(f'Create virtual environment {venv_path}? [y/n] ').lower() == 'y':
                 venv.create(venv_path, with_pip=True, upgrade_deps=True)
                 site_packages_path = find_site_packages(venv_path)
                 if site_packages_path is None:
@@ -409,7 +414,7 @@ def create_bl_env(use_venv: str | None = None):
 
     env_file = EnvVariables(
         BLENDER_USER_RESOURCES=str(Path('.blenv/bl').absolute()),
-        PYTHONPATH=site_packages_path
+        PYTHONPATH=str(Path(site_packages_path).absolute())
     )
 
     try:

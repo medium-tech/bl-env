@@ -2,9 +2,12 @@ import unittest
 import shutil
 import venv
 import os
-from blenv import find_venv, VENV_SEARCH_PATHS
+import re
+import sys
+from blenv import create_bl_env, find_venv, VENV_SEARCH_PATHS, BlenvConf
 from . import TEST_DIR
 
+python_version = f'{sys.version_info.major}.{sys.version_info.minor}'
 
 class TestBlenv(unittest.TestCase):
 
@@ -54,7 +57,88 @@ class TestBlenv(unittest.TestCase):
                 if name.is_dir():
                     shutil.rmtree(name.as_posix())
 
+    def test_setup_no_venv(self):
+        self.assertIsNone(find_venv())
+
+        create_bl_env(yes=True)
+    
+        env_path = TEST_DIR / '.env'
+        with open(env_path, 'r') as f:
+            content = f.read()
+            blender_user_resources = 'BLENDER_USER_RESOURCES=' + str(TEST_DIR / '.blenv/bl')
+            python_path = 'PYTHONPATH=' + str(TEST_DIR / '.blenv/venv3.+/lib/python3.+/site-packages')
+            self.assertIsNotNone(re.search(blender_user_resources, content))
+            self.assertIsNotNone(re.search(python_path, content))
+
+        blenv_yaml_path = TEST_DIR / '.blenv.yaml'
+        blenv_yaml = BlenvConf.from_yaml_file(blenv_yaml_path)
+        self.assertTrue(isinstance(blenv_yaml, BlenvConf))
+
+        blenv_path = TEST_DIR / '.blenv'
+        self.assertTrue(blenv_path.exists())
+        self.assertTrue((blenv_path / 'bl/extensions').is_dir())
+        self.assertTrue((blenv_path / 'bl/scripts/addons/modules').is_dir())
+        self.assertTrue((blenv_path / 'bl/scripts/startup/bl_app_templates_user').is_dir())
         
+        self.assertTrue((blenv_path / f'venv{python_version}/bin').is_dir())
+
+    def test_setup_with_existing_venv(self):
+        self.assertIsNone(find_venv())
+
+        venv_path = TEST_DIR / '.venv'
+        venv.create(venv_path)
+        
+        create_bl_env(use_venv=str(venv_path), yes=True)
+
+        env_path = TEST_DIR / '.env'
+        with open(env_path, 'r') as f:
+            content = f.read()
+            blender_user_resources = 'BLENDER_USER_RESOURCES=' + str(TEST_DIR / '.blenv/bl')
+            python_path = 'PYTHONPATH=' + str(TEST_DIR / '.venv/lib/python3.+/site-packages')
+            self.assertIsNotNone(re.search(blender_user_resources, content))
+            self.assertIsNotNone(re.search(python_path, content))
+            
+        blenv_yaml_path = TEST_DIR / '.blenv.yaml'
+        blenv_yaml = BlenvConf.from_yaml_file(blenv_yaml_path)
+        self.assertTrue(isinstance(blenv_yaml, BlenvConf))
+
+        blenv_path = TEST_DIR / '.blenv'
+        self.assertTrue(blenv_path.exists())
+        self.assertTrue((blenv_path / 'bl/extensions').is_dir())
+        self.assertTrue((blenv_path / 'bl/scripts/addons/modules').is_dir())
+        self.assertTrue((blenv_path / 'bl/scripts/startup/bl_app_templates_user').is_dir())
+
+        self.assertTrue((venv_path).is_dir())
+
+
+    def test_setup_with_existing_venv_custom_path(self):
+        self.assertIsNone(find_venv())
+
+        venv_path = TEST_DIR / 'my_venv'
+        venv.create(venv_path)
+
+        create_bl_env(use_venv=str(venv_path), yes=True)
+
+        env_path = TEST_DIR / '.env'
+        with open(env_path, 'r') as f:
+            content = f.read()
+            blender_user_resources = 'BLENDER_USER_RESOURCES=' + str(TEST_DIR / '.blenv/bl')
+            python_path = 'PYTHONPATH=' + str(TEST_DIR / 'my_venv/lib/python3.+/site-packages')
+            self.assertIsNotNone(re.search(blender_user_resources, content))
+            self.assertIsNotNone(re.search(python_path, content))
+
+        blenv_yaml_path = TEST_DIR / '.blenv.yaml'
+        blenv_yaml = BlenvConf.from_yaml_file(blenv_yaml_path)
+        self.assertTrue(isinstance(blenv_yaml, BlenvConf))
+
+        blenv_path = TEST_DIR / '.blenv'
+        self.assertTrue(blenv_path.exists())
+        self.assertTrue((blenv_path / 'bl/extensions').is_dir())
+        self.assertTrue((blenv_path / 'bl/scripts/addons/modules').is_dir())
+        self.assertTrue((blenv_path / 'bl/scripts/startup/bl_app_templates_user').is_dir())
+
+        self.assertTrue((venv_path).is_dir())
+
 
 if __name__ == '__main__':
     unittest.main()
