@@ -5,6 +5,7 @@ import time
 import subprocess
 import yaml
 import venv
+import glob
 
 from pathlib import Path
 from typing import Literal
@@ -39,6 +40,12 @@ BLENDER_SEARCH_PATHS = [
     '/usr/bin/blender',
     '/usr/local/bin/blender',
     'C:\\Program Files\\Blender Foundation\\Blender\\blender.exe'
+]
+
+VENV_SEARCH_PATHS = [
+    '.blenv/venv',
+    '.venv',
+    'venv'
 ]
 
 BLENV_CONFIG_FILENAME = '.blenv.yaml'
@@ -259,6 +266,39 @@ class BlenvConf(BaseModel):
 # ops / commands
 #
 
+# blenv #
+
+def find_venv() -> tuple[str, str] | None:
+    """
+    find existing python venv in current directory
+    return tuple of (venv_path, site_packages_path) or None if not found
+    """
+    for search_path in VENV_SEARCH_PATHS:
+        venv_pattern = f'./{search_path}*'
+        print(f'looking for venv: {venv_pattern}')
+        matches = glob.glob(venv_pattern)
+        if matches:
+            venv_path = matches[0]
+            site_packages_path = find_site_packages(venv_path)
+            if site_packages_path:
+                return (venv_path, site_packages_path)
+            else:
+                raise BlenvError(f'Found venv at {venv_path} but could not find site-packages directory')
+
+    return None
+
+def find_site_packages(venv_path: str) -> str | None:
+    """
+    given a venv path, find the site-packages directory
+    return path to site-packages or None if not found
+    """
+    site_packages_pattern = os.path.join(venv_path, 'lib', f'python*/site-packages')
+    print(f'looking for site-packages: {site_packages_pattern}')
+    site_packages = glob.glob(site_packages_pattern)
+    if site_packages:
+        return site_packages[0]
+    return None
+
 def setup_bl_env(blenv:BlenvConf):
     """setup blender environment in current directory"""
 
@@ -298,17 +338,58 @@ def setup_bl_env(blenv:BlenvConf):
     except TypeError:
         pass
 
-def create_bl_env():
+def create_bl_env(use_venv: str | None = None):
     """interactively create a new bl-env.yaml file and .env file"""
+
+    #
+    # python venv
+    #
+
+    if use_venv:
+
+        # use user specified venv #
+        
+        venv_path = use_venv
+
+        if not os.path.exists(venv_path):
+            raise BlenvError(f'Specified venv does not exist: {venv_path}')
+        
+        site_packages_path = find_site_packages(venv_path)
+        if site_packages_path is None:
+            raise BlenvError(f'Could not find site-packages in specified venv: {venv_path}')
+        
+    else:
+
+        discovered_venv = find_venv()
+        if discovered_venv is not None:
+
+            # use discovered venv #
+
+            venv_path, site_packages_path = discovered_venv
+            print(f'found existing venv: {venv_path}')
+            print(f'found site-packages: {site_packages_path}')
+            
+            if input(f'Use this venv? [y/n] ').lower() == 'y':
+                pass
+        else:
+
+            # no venv discovered, ask to create one #
+
+            venv_path = f'.blenv/venv{sys.version_info.major}.{sys.version_info.minor}'
+            
+            if input(f'Create virtual environment {venv_path}? [y/n] ').lower() == 'y':
+                venv.create(venv_path, with_pip=True, upgrade_deps=True)
+                site_packages_path = find_site_packages(venv_path)
+                if site_packages_path is None:
+                    raise BlenvError(f'Could not find site-packages in created venv: {venv_path}')
+                
+            else:
+                print('Cannot continue without a venv. Aborting.')
+                raise SystemExit(1)
 
     # create bl-env.yaml file #
 
     blenv = BlenvConf()
-
-    venv_path = f'.blenv/venv{sys.version_info.major}.{sys.version_info.minor}'
-    if not os.path.exists(venv_path):
-        if input(f'Create virtual environment {venv_path}? [y/n] ').lower() == 'y':
-            venv.create(venv_path, with_pip=True, upgrade_deps=True)
 
     try:
         blenv.dump_yaml_file()
@@ -326,7 +407,10 @@ def create_bl_env():
 
     # create .env file #
 
-    env_file = EnvVariables(BLENDER_USER_RESOURCES=str(Path('.blenv/bl').absolute()))
+    env_file = EnvVariables(
+        BLENDER_USER_RESOURCES=str(Path('.blenv/bl').absolute()),
+        PYTHONPATH=site_packages_path
+    )
 
     try:
         env_file.dump_env_file()
@@ -338,6 +422,8 @@ def create_bl_env():
             print(f'wrote: {BLENV_DEFAULT_ENV_FILENAME}')
         else:
             print(f'not overwriting: {BLENV_DEFAULT_ENV_FILENAME}')
+
+# blender #
 
 def find_blender(search_paths:list[str] = BLENDER_SEARCH_PATHS) -> str:
     """find blender executable in search paths, return first found path or 'blender' if none are found"""
