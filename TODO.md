@@ -8,10 +8,10 @@
     * 🟢 ask user during create if they want to use it or abort or ignore
     * 🟢 set `PTHONPATH` env var
 * 🟢 remove typer dependency, rewrite w `argparse`
-* 🟡 tests
+* 🟢 tests
     * 🟢 cli
     * 🟢 create / setup env
-    * 🟡 run blender
+    * 🟢 run blender
 * 🔴 version command that prints versions of python, blenv, .blenv.yaml file, blender exe, and blender's python version
     * 🔴 emit warning if python and blender python's version don't match
 * 🔴 remove pydantic dependency (convert to dataclasses)

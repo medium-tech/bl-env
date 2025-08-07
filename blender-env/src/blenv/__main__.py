@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+from pprint import pprint
 from blenv import create_bl_env, setup_bl_env, run_blender_from_env, BlenvConf
 
 def parser() -> argparse.ArgumentParser:
@@ -32,7 +33,9 @@ def run_parsed_args(args: argparse.Namespace):
             setup_bl_env(BlenvConf.from_yaml_file())
 
         elif args.command == 'run':
-            run_blender_from_env(env_name=args.env_name, debug=args.debug, args=args.args)
+            result = run_blender_from_env(env_name=args.env_name, debug=args.debug, args=args.args)
+            if args.debug:
+                pprint(result)
 
     else:
         parser.print_help()
