@@ -9,16 +9,10 @@ import glob
 
 from pathlib import Path
 from typing import Literal
-from pprint import pprint
 
 from dotenv import load_dotenv, dotenv_values
 from pydantic import BaseModel, Field, model_validator
 from typing_extensions import Self
-
-
-#
-# init
-#
 
 __all__ = [
     'BLENDER_SEARCH_PATHS',
@@ -35,6 +29,13 @@ __all__ = [
     'run_blender'
 ]
 
+class BlenvError(Exception):
+    pass
+
+#
+# constants
+#
+
 BLENDER_SEARCH_PATHS = [
     '/Applications/Blender.app/Contents/MacOS/Blender',
     '/usr/bin/blender',
@@ -50,9 +51,6 @@ VENV_SEARCH_PATHS = [
 
 BLENV_CONFIG_FILENAME = '.blenv.yaml'
 BLENV_DEFAULT_ENV_FILENAME = '.env'
-
-class BlenvError(Exception):
-    pass
 
 #
 # conf models
@@ -267,10 +265,10 @@ class BlenvConf(BaseModel):
             return cls.from_yaml(f.read())
         
 #
-# ops / commands
+# funcs and operations
 #
 
-# blenv #
+# venv #
 
 def find_venv() -> tuple[str, str] | None:
     """
@@ -302,6 +300,8 @@ def find_site_packages(venv_path: str) -> str | None:
     if site_packages:
         return site_packages[0]
     return None
+
+# blenv #
 
 def setup_bl_env(blenv:BlenvConf):
     """setup blender environment in current directory"""
