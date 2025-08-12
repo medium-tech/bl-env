@@ -8,6 +8,7 @@ from blenv import run_blender_from_env
 
 this_dir = Path(__file__).parent
 examples_dir = this_dir.parent / 'examples'
+SLEEP_TIME = 3
 
 class TestRunBlender(unittest.TestCase):
 
@@ -55,7 +56,7 @@ class TestRunBlender(unittest.TestCase):
             args
         )
         
-        time.sleep(5)   # sleep for a bit so we know it didn't exit immediately
+        time.sleep(SLEEP_TIME)   # sleep for a bit so we know it didn't exit immediately
 
         # send ctl-c twiced to trigger exit
         os.kill(process.pid, signal.SIGINT)
@@ -91,7 +92,7 @@ class TestRunBlender(unittest.TestCase):
             args
         )
         
-        time.sleep(5)   # sleep for a bit so we know it didn't exit immediately
+        time.sleep(SLEEP_TIME)   # sleep for a bit so we know it didn't exit immediately
 
         # send ctl-c twiced to trigger exit
         os.kill(process.pid, signal.SIGINT)

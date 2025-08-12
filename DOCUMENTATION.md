@@ -81,9 +81,18 @@ Examples are in the repository:
 
     python -m blenv run [env_name] [--debug]
 
-**env_name** - optional, `default` if not provided
+**env_name** - (optional), `default` if not provided
 
-**--debug** - optional, if provided, print the details of arguments that would be passed to the underlying `subprocess.Popen` constructor and exit.
+**--debug** - (optional), if provided, print the details of arguments that would be passed to the underlying `subprocess.Popen` constructor and exit.
+
+**--** (optional), if provided this will run the blender binary for the given environment with the args that follow `--`.
+
+    python -m blenv run --debug -- --version
+    {'popen_args': ['/Applications/Blender.app/Contents/MacOS/Blender',
+                    '--version'],
+    'popen_kwargs': {'env_file': '.env',
+                    'env_inherit': True,
+                    'env_override': True}}
 
 
 ## blenv.yaml
