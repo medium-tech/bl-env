@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 import argparse
 from pprint import pprint
-from blenv import create_bl_env, setup_bl_env, run_blender_from_env, BlenvConf
+from blenv import (
+    BlenvConf, 
+    create_bl_env, 
+    setup_bl_env, 
+    run_blender_from_env, 
+    versions
+)
 
 def parser() -> argparse.ArgumentParser:
     """Create the argument parser for the blenv CLI."""
     parser = argparse.ArgumentParser()
     cmd_subparsers = parser.add_subparsers(help='subcommand help')
+
+    version_command = cmd_subparsers.add_parser('version', help='Show version info')
+    version_command.set_defaults(command='version')
 
     create_command = cmd_subparsers.add_parser('create', help='Create a new blender environment in current directory')
     create_command.set_defaults(command='create')
@@ -26,7 +35,10 @@ def parser() -> argparse.ArgumentParser:
 def run_parsed_args(args: argparse.Namespace):
     """Run the appropriate function based on parsed args returned from parser."""
     if hasattr(args, 'command'):
-        if args.command == 'create':
+        if args.command == 'version':
+            versions()
+
+        elif args.command == 'create':
             create_bl_env()
 
         elif args.command == 'setup':

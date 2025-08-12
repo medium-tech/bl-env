@@ -6,6 +6,7 @@ import subprocess
 import yaml
 import venv
 import glob
+import tomllib
 
 from pathlib import Path
 from typing import Literal
@@ -267,6 +268,16 @@ class BlenvConf(BaseModel):
 #
 # funcs and operations
 #
+
+def versions():
+    pyproject_path = Path(__file__).parent.parent.parent / 'pyproject.toml'
+    with open(pyproject_path, 'rb') as f:
+        pyproject_data = tomllib.load(f)
+
+    print(f'Python version: {sys.version}')
+    print(f'Blenv version: {pyproject_data["project"]["version"]}')
+
+    run_blender_from_env(args=['--background', '--python-expr', "import sys; print(f'Blender python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')"])
 
 # venv #
 

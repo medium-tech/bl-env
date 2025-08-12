@@ -12,7 +12,7 @@
     * 🟢 cli
     * 🟢 create / setup env
     * 🟢 run blender
-* 🔴 version command that prints versions of python, blenv, .blenv.yaml file, blender exe, and blender's python version
-    * 🔴 emit warning if python and blender python's version don't match
-        * 🔴 also emit warning when setting up blenv if mismatch is detected, ask for user confirmation to continue/abort
+* 🟢 version command that prints versions of python, blenv, .blenv.yaml file, blender exe, and blender's python version
+* 🔴 emit warning if python and blender python's version don't match
+    * 🔴 also emit warning when setting up blenv if mismatch is detected, ask for user confirmation to continue/abort
 * 🔴 remove pydantic dependency (convert to dataclasses)
