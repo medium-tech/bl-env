@@ -9,4 +9,4 @@ The cli utility has a command to run blender using a selected environment. It wi
 
 ## Documentation
 
-See [DOCUMENTATION.md](./DOCUMENTATION.md) in the [repostiory](https://github.com/medium-tech/bl-env).
+See [DOCUMENTATION.md](./DOCUMENTATION.md) in the [repository](https://github.com/medium-tech/bl-env).

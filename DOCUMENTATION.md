@@ -24,7 +24,7 @@ This creates a blenv environment which is a `.blenv.yaml`, an `.env` file and al
 empty blenv.yaml file:
 
     blenv:
-        version: '1'
+        version: '1.1'
     environments:
         default:
             blender: /Applications/Blender.app/Contents/MacOS/Blender
@@ -36,7 +36,7 @@ empty blenv.yaml file:
 In the following example we define our addon under `project.addons` and then attach it to our default environment under `environments.default.addons`
 
     blenv:
-        version: '1'
+        version: '1.1'
 
     environments:
         default:
@@ -69,11 +69,17 @@ Examples are in the repository:
 
 ## command line arguments
 
+**version** - show version information for blenv and blender
+
+    python -m blenv version
+
 **create**  - create a new blender environment in current directory
 
-    python -m blenv create                                                                                                  
+    python -m blenv create [--venv PATH]
 
-**setup** - setup blender environment in current directory, this is run during create, but can be run separately if a new app temnplate or addon is added to the environment and needs to be linked to the env. 
+**--venv PATH** - (optional), specify path to existing python virtual environment to use
+
+**setup** - setup blender environment in current directory, this is run during create, but can be run separately if a new app template or addon is added to the environment and needs to be linked to the env. 
     
     python -m blenv setup     
 
@@ -84,15 +90,6 @@ Examples are in the repository:
 **env_name** - (optional), `default` if not provided
 
 **--debug** - (optional), if provided, print the details of arguments that would be passed to the underlying `subprocess.Popen` constructor and exit.
-
-**--** (optional), if provided this will run the blender binary for the given environment with the args that follow `--`.
-
-    python -m blenv run --debug -- --version
-    {'popen_args': ['/Applications/Blender.app/Contents/MacOS/Blender',
-                    '--version'],
-    'popen_kwargs': {'env_file': '.env',
-                    'env_inherit': True,
-                    'env_override': True}}
 
 
 ## blenv.yaml
@@ -108,13 +105,13 @@ The `blenv.yaml` file contains the following fields:
 ### blenv config object
 | field name | type | description |
 | -- | -- | -- |
-| version | str | `1` is the only version available |
+| version | str | `1.1` is the current version |
 
 ### project config object
 | field name | type | description |
 | -- | -- | -- |
-| addons | list of [extension config objects](#extension-config-object) | addons available to the project |
-| app_templates | list of [extension config objects](#extension-config-object) | app templates availble to the project |
+| addons | dict of [extension config objects](#extension-config-object) | addons available to the project, keys are addon names |
+| app_templates | dict of [extension config objects](#extension-config-object) | app templates available to the project, keys are template names |
 
 ### extension config object
 | field name | type | description |
