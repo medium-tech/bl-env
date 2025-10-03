@@ -32,7 +32,6 @@ if __name__ == "__main__":
     run_command.set_defaults(command='run')
     run_command.add_argument('env_name', type=str, default='default', help='Name of the environment to use', nargs='?')
     run_command.add_argument('--debug', action='store_true', help='Print debug info')
-    run_command.add_argument('--', nargs='*', default=None, dest='args', help='Run the blender binary for this env with all args that follow')
 
     #
     # parse and run args
