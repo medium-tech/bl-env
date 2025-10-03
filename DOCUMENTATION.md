@@ -10,6 +10,8 @@
 
 * [blenv.yaml](#blenvyaml)
 
+* [publish to pypi](#publish-to-pypi)
+
 ## Getting started
 Blenv can be installed in your system python or project's venv.
 
@@ -145,7 +147,6 @@ blenv environment objects can be found in the [blenv.yaml](#blenvyaml) files und
 1. increment version in `pyproject.toml` file
 
 ### build and publish release:
-
 1. build distributions
 
         python3 -m build --sdist
