@@ -24,8 +24,9 @@ class TestRunBlender(unittest.TestCase):
         self.assertIn('popen_kwargs', result)
 
         self.assertIn('blender', result['popen_args'][0].lower())
-        self.assertEqual(result['popen_args'][1], '--addons')
-        self.assertEqual(result['popen_args'][2], 'object_cursor_array')
+        self.assertEqual(result['popen_args'][1], '--python-use-system-env')
+        self.assertEqual(result['popen_args'][2], '--addons')
+        self.assertEqual(result['popen_args'][3], 'object_cursor_array')
 
         self.assertEqual(result['popen_kwargs']['env_file'], '.env')
         self.assertTrue(result['popen_kwargs']['env_inherit'])
@@ -74,8 +75,9 @@ class TestRunBlender(unittest.TestCase):
         self.assertIn('popen_kwargs', result)
 
         self.assertIn('blender', result['popen_args'][0].lower())
-        self.assertEqual(result['popen_args'][1], '--app-template')
-        self.assertEqual(result['popen_args'][2], 'hello_app_template')
+        self.assertEqual(result['popen_args'][1], '--python-use-system-env')
+        self.assertEqual(result['popen_args'][2], '--app-template')
+        self.assertEqual(result['popen_args'][3], 'hello_app_template')
 
         self.assertEqual(result['popen_kwargs']['env_file'], '.env')
         self.assertTrue(result['popen_kwargs']['env_inherit'])
