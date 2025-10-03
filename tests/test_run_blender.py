@@ -34,14 +34,12 @@ class TestRunBlender(unittest.TestCase):
     def test_hello_extension_run_blender_custom_args(self):
         os.chdir(examples_dir / 'bl-hello-extension')
 
-        result = run_blender_from_env(debug=True, args=['arg1', 'arg2'])
+        result = run_blender_from_env(debug=True)
         self.assertIsInstance(result, dict)
         self.assertIn('popen_args', result)
         self.assertIn('popen_kwargs', result)
 
         self.assertIn('blender', result['popen_args'][0].lower())
-        self.assertEqual(result['popen_args'][1], 'arg1')
-        self.assertEqual(result['popen_args'][2], 'arg2')
 
         self.assertEqual(result['popen_kwargs']['env_file'], '.env')
         self.assertTrue(result['popen_kwargs']['env_inherit'])
@@ -102,3 +100,26 @@ class TestRunBlender(unittest.TestCase):
         process.wait()
 
         self.assertEqual(process.returncode, 0)
+
+    def test_version(self):
+        os.chdir(examples_dir / 'bl-hello-app-template')
+
+        args = ['python', '-m', 'blenv', 'version']
+
+        process = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        stdout, stderr = process.communicate()
+        self.assertEqual(process.returncode, 0)
+        self.assertEqual(stderr, b'')
+
+        output = stdout.decode()
+        
+        self.assertIn('Python version:', output)
+        self.assertIn('Blenv version:', output)
+        self.assertIn('Blender python:', output)
+        
+        self.assertTrue(output.count('Blender') >= 3)

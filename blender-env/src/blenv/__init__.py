@@ -9,11 +9,10 @@ import glob
 import tomllib
 
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
 from dotenv import load_dotenv, dotenv_values
-from pydantic import BaseModel, Field, model_validator
-from typing_extensions import Self
+from pydantic import BaseModel, Field
 
 __all__ = [
     'BLENDER_SEARCH_PATHS',
@@ -83,92 +82,41 @@ class EnvVariables(BaseModel):
 
 
 class BlenderEnv(BaseModel):
-    inherit: str | None = None
 
     blender: str | None = None
-    env_file: str | None = None
+    blender_file: str | None = None
 
+    app_template: str | None = None
+    addons: list[str] | None = Field(default=None)
+
+    env_file: str | None = None
     env_inherit: bool = True
     env_override: bool = True
 
-    file: str | None = None
-
     args: list[str] | None = None
-    
-    background: bool = False
-    autoexec: bool = False
-
-    app_template: str | None = None
-
-    python: str | None = None 
-    python_text: str | None = None
-    python_expr: str | None = None
-    python_console: bool = False
-
-    python_exit_code: int = -1
-    python_use_system_env: bool = False
-
-    addons: list[str] | None = Field(default=None)
-
-    blender_file: str | None = None
 
     @classmethod
     def default(cls) -> 'BlenderEnv':
         return cls(blender=find_blender(), env_file=BLENV_DEFAULT_ENV_FILENAME)
-    
-    @model_validator(mode='after')
-    def check_defaults(self) -> Self:
-        inherit_set = self.inherit is not None
-        if self.blender is None and not inherit_set:
-            raise ValueError('Must set either "blender" or "inherit" option on environment')
-        
-        return self
 
-    def get_bl_run_args(self, override_args: list[str] | None = None) -> list[str]:
+    def get_bl_run_args(self, override_args: Optional[list[str]] = None) -> list[str]:
         args = [self.blender]
 
         if override_args is not None:
-            return args + override_args
+            return [self.blender] + override_args
 
         if self.args is not None:
             return args + self.args
 
-        if self.background:
-            args.append('--background')
-
-        if self.autoexec:
-            args.append('--enable-autoexec')
-
         if self.app_template:
             args.extend(['--app-template', self.app_template])
 
-        if self.python:
-            args.extend(['--python', self.python])
-
-        if self.python_text:
-            args.extend(['--python-text', self.python_text])
-
-        if self.python_expr:
-            args.extend(['--python-expr', self.python_expr])
-
-        if self.python_console:
-            args.append('--python-console')
-
-        if self.python_exit_code >= 0:
-            args.extend(['--python-exit-code', str(self.python_exit_code)])
-
-        if self.python_use_system_env:
-            args.append('--python-use-system-env')
-
         if self.addons:
-            # blender is expecting a comma separated list of addons
+            # blender expects a comma separated list of addons
             args.extend(['--addons', ','.join(self.addons)])
 
         if self.blender_file:
             args.append(self.blender_file)
-            
-        elif self.file:
-            args.append(self.file)
 
         return args
     
@@ -232,33 +180,7 @@ class BlenvConf(BaseModel):
     @classmethod
     def from_yaml(cls, data: str) -> 'BlenvConf':
         raw_data = yaml.safe_load(data)
-
-        child_enviros = {}
-        enviros = {}
-
-        # init base enviros
-        for name, raw_env in raw_data['environments'].items():
-            if raw_env.get('inherit') is not None:
-                child_enviros[name] = raw_env   # will be loaded after all enviros are loaded so it can find parent
-                continue
-
-            enviros[name] = BlenderEnv(**raw_env)
-
-        # init child enviros that inherit from bases
-        for name, child_env in child_enviros.items():
-            try:
-                parent_env = enviros[child_env['inherit']]
-            except KeyError as e:
-                raise ValueError(f"'{name}' environment attempts inherit from undefined environment: {e}")
-            
-            enviros[name] = parent_env.model_copy(update=child_env, deep=True)
-            BlenderEnv.model_validate(enviros[name])
-
-        return cls(
-            blenv=BlenvConfMeta(**raw_data['blenv']), 
-            project=BlenderProjectConf(**raw_data['project']), 
-            environments=enviros
-        )
+        return cls(**raw_data)
     
     @classmethod
     def from_yaml_file(cls, path: Path | str = BLENV_CONFIG_FILENAME) -> 'BlenvConf':
@@ -277,7 +199,7 @@ def versions():
     print(f'Python version: {sys.version}')
     print(f'Blenv version: {pyproject_data["project"]["version"]}')
 
-    run_blender_from_env(args=['--background', '--python-expr', "import sys; print(f'Blender python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')"])
+    run_blender_from_env(override_args=['--background', '--python-expr', "import sys; print(f'Blender python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')"])
 
 # venv #
 
@@ -451,7 +373,7 @@ def find_blender(search_paths:list[str] = BLENDER_SEARCH_PATHS) -> str:
             return path
     return 'blender'
 
-def run_blender_from_env(env_name:str='default', blenv_file:str=BLENV_CONFIG_FILENAME, debug:bool=False, args: list[str]|None=None) -> dict | int:
+def run_blender_from_env(env_name:str='default', blenv_file:str=BLENV_CONFIG_FILENAME, debug:bool=False, override_args:Optional[list[str]] = None) -> dict | int:
     """
     run blender with specified environment, or default environment if not specified
     :param env_name: name of the environment to use, defaults to 'default'
@@ -465,7 +387,7 @@ def run_blender_from_env(env_name:str='default', blenv_file:str=BLENV_CONFIG_FIL
     bl_conf = BlenvConf.from_yaml_file(blenv_file)
     bl_env = bl_conf.get(env_name)
 
-    popen_args = bl_env.get_bl_run_args(args)
+    popen_args = bl_env.get_bl_run_args(override_args)
     popen_kwargs = bl_env.get_bl_run_kwargs()
 
     if debug:
