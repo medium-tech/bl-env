@@ -133,6 +133,7 @@ blenv environment objects can be found in the [blenv.yaml](#blenvyaml) files und
 | `env_file` | N/A | `str` / `null` | which env file to use, if `null` then `inherit` must define a parent that defines this value  | `.env` |
 | `env_inherit` | N/A | `bool` | If `true` the blender process will have access to the system environment | `true` |
 | `env_override` | N/A | `bool` | if `env_inherit` is `true` and this is `true` then the values from the `env_file` file will override system values | `true` |
+| `python-use-system-env` | N/A | `bool` | set blender's `--python-use-system-env` option to allow Blender's Python to use system environment variables such as `PYTHONPATH` and the user site-packages directory | `true` |
 | `args` | N/A | `list[str]` / `null` | launch `blender` with these arguments, ignores all other options that set a blender cli argument | `null` |
 
 ## publish to pypi

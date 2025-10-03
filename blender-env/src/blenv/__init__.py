@@ -93,6 +93,8 @@ class BlenderEnv(BaseModel):
     env_inherit: bool = True
     env_override: bool = True
 
+    python_use_system_env: bool = True
+
     args: list[str] | None = None
 
     @classmethod
@@ -107,6 +109,9 @@ class BlenderEnv(BaseModel):
 
         if self.args is not None:
             return args + self.args
+        
+        if self.python_use_system_env:
+            args.append('--python-use-system-env')
 
         if self.app_template:
             args.extend(['--app-template', self.app_template])
