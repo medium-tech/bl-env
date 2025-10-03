@@ -129,7 +129,7 @@ class BlenderEnv(BaseModel):
 
 
 class BlenvConfMeta(BaseModel):
-    version: Literal['1'] = '1'
+    version: Literal['1.1'] = '1.1'
 
 
 class BlenderExtension(BaseModel):
@@ -180,6 +180,12 @@ class BlenvConf(BaseModel):
     @classmethod
     def from_yaml(cls, data: str) -> 'BlenvConf':
         raw_data = yaml.safe_load(data)
+        try:
+            if raw_data['blenv']['version'] != '1.1':
+                raise BlenvError(f'Unsupported blenv version: {raw_data["blenv"]["version"]}')
+        except KeyError:
+            raise BlenvError('Invalid blenv config, missing blenv.version key')
+        
         return cls(**raw_data)
     
     @classmethod
