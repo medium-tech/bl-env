@@ -2,13 +2,13 @@
 
 🔴 warning - blenv is in beta - api or config may change 🔴
 
-[getting started](#getting-started)
+* [getting started](#getting-started)
 
-[examples](#examples)
+* [examples](#examples)
 
-[command line](#command-line-arguments)
+* [command line](#command-line-arguments)
 
-[blenv.yaml](#blenvyaml)
+* [blenv.yaml](#blenvyaml)
 
 ## Getting started
 Blenv can be installed in your system python or project's venv.
@@ -132,3 +132,29 @@ blenv environment objects can be found in the [blenv.yaml](#blenvyaml) files und
 | `env_inherit` | N/A | `bool` | If `true` the blender process will have access to the system environment | `true` |
 | `env_override` | N/A | `bool` | if `env_inherit` is `true` and this is `true` then the values from the `env_file` file will override system values | `true` |
 | `args` | N/A | `list[str]` / `null` | launch `blender` with these arguments, ignores all other options that set a blender cli argument | `null` |
+
+## publish to pypi
+
+### install build dependencies:
+
+    pip install -r requirements-dev.txt
+
+### finalizing release
+1. run tests `./test.sh`
+
+1. increment version in `pyproject.toml` file
+
+### build and publish release:
+
+1. build distributions
+
+        python3 -m build --sdist
+        python3 -m build --wheel
+
+1. check distributions for errors
+
+        twine check dist/*
+
+1. upload to pypi (will prompt for api key, no other config needed)
+
+        twine upload dist/*
