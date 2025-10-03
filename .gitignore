@@ -3,6 +3,8 @@ venv
 *.egg-info
 __pycache__
 .DS_Store
+build/
+dist/*
 *.blend1
 .blenv*
 !.blenv.yaml
