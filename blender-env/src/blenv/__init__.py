@@ -32,6 +32,9 @@ __all__ = [
 class BlenvError(Exception):
     pass
 
+class BlenvConfigNotFoundError(BlenvError):
+    pass
+
 #
 # constants
 #
@@ -210,8 +213,11 @@ def versions():
     print(f'Python version: {sys.version}')
     print(f'Blenv version: {pyproject_data["project"]["version"]}')
 
-    run_blender_from_env(override_args=['--background', '--python-expr', "import sys; print(f'Blender python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')"])
-
+    try:
+        run_blender_from_env(override_args=['--background', '--python-expr', "import sys; print(f'Blender python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')"])
+    except BlenvConfigNotFoundError:
+        print(f'{BLENV_CONFIG_FILENAME} not found in current directory, cannot get Blender python version.')
+        
 # venv #
 
 def find_venv() -> tuple[str, str] | None:
@@ -395,7 +401,10 @@ def run_blender_from_env(env_name:str='default', blenv_file:str=BLENV_CONFIG_FIL
     :return: if debug is True, returns a dict with 'popen_args' and 'popen_kwargs' that would be used to run blender
              if debug is False, returns the exit code of the blender process
     """
-    bl_conf = BlenvConf.from_yaml_file(blenv_file)
+    try:
+        bl_conf = BlenvConf.from_yaml_file(blenv_file)
+    except FileNotFoundError:
+        raise BlenvConfigNotFoundError(f'Blenv config file not found: {blenv_file}')
     bl_env = bl_conf.get(env_name)
 
     popen_args = bl_env.get_bl_run_args(override_args)

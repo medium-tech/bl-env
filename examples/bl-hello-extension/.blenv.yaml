@@ -8,6 +8,16 @@ environments:
     addons:
       - object_cursor_array
 
+  custom_args:
+    blender: /Applications/Blender.app/Contents/MacOS/Blender
+    env_file: .env
+    addons:
+      - object_cursor_array
+    args:
+      - '--background'
+      - '--python-expr'
+      - "import bpy; print(f'Custom Args Environment: Blender version {bpy.app.version_string}')"
+
 project:
   addons:
     object_cursor_array:

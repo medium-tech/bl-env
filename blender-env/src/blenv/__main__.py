@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # define arg parser
     #
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='blenv', description='Blender Environment Manager')
     cmd_subparsers = parser.add_subparsers(help='subcommand help')
 
     version_command = cmd_subparsers.add_parser('version', help='Show version info')
