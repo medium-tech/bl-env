@@ -166,9 +166,10 @@ blenv environment objects can be found in the [blenv.yaml](#blenvyaml) files und
     pip install -r requirements-dev.txt
 
 ### finalizing release
-1. run tests `./test.sh`
 
 1. increment version in `pyproject.toml` file
+
+1. run tests `./test.sh`
 
 ### build and publish release:
 1. build distributions
