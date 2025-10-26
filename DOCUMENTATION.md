@@ -8,6 +8,8 @@
 
 * [command line](#command-line-arguments)
 
+* [advanced usage](#advanced-usage)
+
 * [blenv.yaml](#blenvyaml)
 
 * [publish to pypi](#publish-to-pypi)
@@ -99,6 +101,21 @@ Examples are in the repository:
 
 **--blender** - (optional) if provided, replace all arguments passed to blender
 
+## Advanced Usage
+
+**Debug Mode**: Use `--debug` to see exactly what arguments blenv will pass to Blender without actually running it:
+
+    python -m blenv run --debug
+
+**Extending Arguments**: Use `--args` to add additional arguments to your environment's configuration:
+
+    python -m blenv run --args --python-expr "print('Hello from Blender')"
+
+**Override Arguments**: Use `--blender` to completely replace all arguments, ignoring environment settings:
+
+    python -m blenv run --blender --version
+
+Note: You cannot use both `--args` and `--blender` together.
 
 ## blenv.yaml
 
