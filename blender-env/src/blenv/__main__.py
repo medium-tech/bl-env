@@ -32,6 +32,8 @@ if __name__ == "__main__":
     run_command.set_defaults(command='run')
     run_command.add_argument('env_name', type=str, default='default', help='Name of the environment to use', nargs='?')
     run_command.add_argument('--debug', action='store_true', help='Print debug info')
+    run_command.add_argument('--args', type=str, nargs='*', help='Extend arguments passed to Blender')
+    run_command.add_argument('--blender', type=str, nargs='*', help='Override all args passed to Blender')
 
     #
     # parse and run args
@@ -50,9 +52,14 @@ if __name__ == "__main__":
             setup_bl_env(BlenvConf.from_yaml_file())
 
         elif args.command == 'run':
-            result = run_blender_from_env(env_name=args.env_name, debug=args.debug)
+            if args.args and args.blender:
+                raise ValueError('Cannot specify both --args and --blender')
+
+            result = run_blender_from_env(env_name=args.env_name, debug=args.debug, override_args=args.blender, extend_args=args.args)
+
             if args.debug:
                 pprint(result)
+                print(args.args, args.blender)
 
     else:
         parser.print_help()

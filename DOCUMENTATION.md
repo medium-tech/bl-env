@@ -64,6 +64,8 @@ The `run` command runs blender and loads the user's addon. This enables a quick 
 
 More technically, the `run` command calls the binary listed in `blender` under the `default` environment, it will use the `.env` file which overrides the blender's directory structure to use the `.blenv` folder. The `setup` command created a link under `.blenv` where blender expects addons to be. The addon is passed to the cli's `addons` option so that it loads. An environment can define addons, app templates, python scripts, or configure many other blender cli options. A developer can setup multiple environments that use different blender versions, run tests, open a specific blend file and more to speed up development.
 
+
+
 ## examples
 Examples are in the repository:
 * `./examples/bl-hello-app-template`
@@ -79,7 +81,7 @@ Examples are in the repository:
 
     python -m blenv create [--venv PATH]
 
-**--venv PATH** - (optional), specify path to existing python virtual environment to use
+**--venv PATH** - (optional) specify path to existing python virtual environment to use
 
 **setup** - setup blender environment in current directory, this is run during create, but can be run separately if a new app template or addon is added to the environment and needs to be linked to the env. 
     
@@ -87,11 +89,15 @@ Examples are in the repository:
 
 **run** - run blender with specified environment, or default environment if `env_name` is omitted. Blender's stdout is redirected to your terminal. If you `Ctl+C` in the terminal one time it will terminate the blender process and restart it,  reloading your application. If you use `Ctl+C` twice quickly it will terminate blender and then exit.
 
-    python -m blenv run [env_name] [--debug]
+    python -m blenv run [env_name] [--debug] [--args ARGS] [--blender ARGS]
 
-**env_name** - (optional), `default` if not provided
+**env_name** - (optional) `default` if not provided
 
-**--debug** - (optional), if provided, print the details of arguments that would be passed to the underlying `subprocess.Popen` constructor and exit.
+**--debug** - (optional) if provided, print the details of arguments that would be passed to the underlying `subprocess.Popen` constructor and exit.
+
+**--args** - (optional) if provided, extend the arguments passed to blender with these
+
+**--blender** - (optional) if provided, replace all arguments passed to blender
 
 
 ## blenv.yaml

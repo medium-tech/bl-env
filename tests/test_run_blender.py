@@ -32,6 +32,45 @@ class TestRunBlender(unittest.TestCase):
         self.assertTrue(result['popen_kwargs']['env_inherit'])
         self.assertTrue(result['popen_kwargs']['env_override'])
 
+    def test_hello_extension_override_args(self):
+        os.chdir(examples_dir / 'bl-hello-extension')
+
+        result = run_blender_from_env(debug=True, override_args=['one', 'two', 'three'])
+        self.assertIsInstance(result, dict)
+        self.assertIn('popen_args', result)
+        self.assertIn('popen_kwargs', result)
+
+        self.assertIn('blender', result['popen_args'][0].lower())
+        self.assertEqual(result['popen_args'][1], 'one')
+        self.assertEqual(result['popen_args'][2], 'two')
+        self.assertEqual(result['popen_args'][3], 'three')
+        self.assertEqual(len(result['popen_args']), 4)
+
+        self.assertEqual(result['popen_kwargs']['env_file'], '.env')
+        self.assertTrue(result['popen_kwargs']['env_inherit'])
+        self.assertTrue(result['popen_kwargs']['env_override'])
+
+    def test_hello_extension_extend_args(self):
+        os.chdir(examples_dir / 'bl-hello-extension')
+
+        result = run_blender_from_env(debug=True, extend_args=['one', 'two', 'three'])
+        self.assertIsInstance(result, dict)
+        self.assertIn('popen_args', result)
+        self.assertIn('popen_kwargs', result)
+
+        self.assertIn('blender', result['popen_args'][0].lower())
+        self.assertEqual(result['popen_args'][1], '--python-use-system-env')
+        self.assertEqual(result['popen_args'][2], '--addons')
+        self.assertEqual(result['popen_args'][3], 'object_cursor_array')
+        self.assertEqual(result['popen_args'][4], 'one')
+        self.assertEqual(result['popen_args'][5], 'two')
+        self.assertEqual(result['popen_args'][6], 'three')
+        self.assertEqual(len(result['popen_args']), 7)
+
+        self.assertEqual(result['popen_kwargs']['env_file'], '.env')
+        self.assertTrue(result['popen_kwargs']['env_inherit'])
+        self.assertTrue(result['popen_kwargs']['env_override'])
+
     def test_hello_extension_run_blender_custom_args(self):
         os.chdir(examples_dir / 'bl-hello-extension')
 

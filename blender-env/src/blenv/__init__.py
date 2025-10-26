@@ -390,25 +390,39 @@ def find_blender(search_paths:list[str] = BLENDER_SEARCH_PATHS) -> str:
             return path
     return 'blender'
 
-def run_blender_from_env(env_name:str='default', blenv_file:str=BLENV_CONFIG_FILENAME, debug:bool=False, override_args:Optional[list[str]] = None) -> dict | int:
+def run_blender_from_env(
+        env_name:str='default', 
+        blenv_file:str=BLENV_CONFIG_FILENAME, 
+        debug:bool=False, 
+        override_args:Optional[list[str]] = None,
+        extend_args:Optional[list[str]] = None,
+    ) -> dict | int:
     """
     run blender with specified environment, or default environment if not specified
     :param env_name: name of the environment to use, defaults to 'default'
     :param blenv_file: path to the blenv config file, defaults to '.blenv.yaml'
     :param debug: if True, print the args and kwargs that would be used to run blender instead of running it
-    :param args: if provided, overrides the args provided to the blender executable (rest of env is the same)
+    :param override_args: if provided, overrides the args provided to the blender executable (rest of env is the same)
+    :param extend_args: if provided, extends the args provided to the blender executable (rest of env is the same)
 
     :return: if debug is True, returns a dict with 'popen_args' and 'popen_kwargs' that would be used to run blender
              if debug is False, returns the exit code of the blender process
     """
+    if extend_args is not None and override_args is not None:
+        raise ValueError('Cannot specify both override_args and extend_args')
+    
     try:
         bl_conf = BlenvConf.from_yaml_file(blenv_file)
     except FileNotFoundError:
         raise BlenvConfigNotFoundError(f'Blenv config file not found: {blenv_file}')
+    
     bl_env = bl_conf.get(env_name)
 
     popen_args = bl_env.get_bl_run_args(override_args)
     popen_kwargs = bl_env.get_bl_run_kwargs()
+
+    if extend_args is not None:
+        popen_args.extend(extend_args)
 
     if debug:
         return {'popen_args': popen_args, 'popen_kwargs': popen_kwargs}
