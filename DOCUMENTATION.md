@@ -173,7 +173,6 @@ blenv environment objects can be found in the [blenv.yaml](#blenvyaml) files und
 ### build and publish release:
 1. build distributions
 
-        cd blender-env
         python3 -m build --sdist
         python3 -m build --wheel
 
